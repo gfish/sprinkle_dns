@@ -1,5 +1,31 @@
 # require 'fog'
 
+# def batch(zone_domain)
+#   change_batch_options = [
+#     {
+#       :action => "UPSERT",
+#       :name => "#{zone_domain}",
+#       :type => "A",
+#       :ttl => 60,
+#       :resource_records => [ '88.80.188.142' ]
+#     },
+#     {
+#       :action => "UPSERT",
+#       :name => "assets.#{zone_domain}",
+#       :type => "A",
+#       :ttl => 60,
+#       :resource_records => [ '88.80.188.142' ]
+#     },
+#     {
+#       :action => "UPSERT",
+#       :name => "streamy.#{zone_domain}",
+#       :type => "A",
+#       :ttl => 60,
+#       :resource_records => [ '198.211.96.200' ]
+#     },
+#   ]
+# end
+
 # $dns = Fog::DNS.new({
 #   provider:              'AWS',
 #   aws_access_key_id:     ACCESS_KEY_ID,
