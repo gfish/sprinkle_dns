@@ -42,7 +42,7 @@ module SprinkleDNS
       end
       (existing_zones - wanted_zones).each do |destroyable_zone|
         # TODO
-        puts "NOT deleteding #{destroyable_zone}"
+        puts "NOT deleting #{destroyable_zone}"
       end
 
       # 2. DIFF AWS.hosted_zones versus self.hosted_zones
