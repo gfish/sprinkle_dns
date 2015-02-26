@@ -1,6 +1,6 @@
 $:.push File.expand_path("../lib", __FILE__)
 
-require 'sprinkle_dns'
+require 'sprinkle_dns/version'
 
 Gem::Specification.new do |gem|
   gem.name        = "sprinkle_dns"
