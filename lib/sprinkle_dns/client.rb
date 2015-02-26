@@ -38,7 +38,8 @@ module SprinkleDNS
       wanted_zones   = self.hosted_zones.keys
       existing_zones = @aws.hosted_zones.keys
       (wanted_zones - existing_zones).each do |new_zone|
-        @dns.create_hosted_zone(new_zone)
+        @aws.create_hosted_zone(new_zone)
+        puts "Created hosted zone: #{new_zone}"
       end
       (existing_zones - wanted_zones).each do |destroyable_zone|
         # TODO
