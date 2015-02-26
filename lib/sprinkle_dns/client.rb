@@ -43,7 +43,7 @@ module SprinkleDNS
       end
       (existing_zones - wanted_zones).each do |destroyable_zone|
         # TODO
-        puts "NOT deleting #{destroyable_zone}"
+        puts "NOT deleting hosted zone #{destroyable_zone}"
       end
 
       hosted_zones.each do |current_zone, entries|
@@ -59,6 +59,7 @@ module SprinkleDNS
         # TODO: Deletions?
 
         @dns.change_resource_record_sets(@aws.id_for_zone(current_zone), batches)
+        puts entries.map(&:to_s)
       end
     end
 
