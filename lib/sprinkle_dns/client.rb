@@ -6,8 +6,12 @@ require 'sprinkle_dns/providers/aws_dns'
 module SprinkleDNS
   class Client
 
+    attr_reader :hosted_zones
+
     def initialize(aws_access_key_id, aws_secret_access_key)
-      @hosted_zones = {}
+      @hosted_zones           = {}
+      @aws_access_key_id      = aws_access_key_id
+      @aws_secret_access_key  = aws_secret_access_key
     end
 
     def entry(type, name, value, ttl = 3600)
@@ -24,6 +28,8 @@ module SprinkleDNS
     end
 
     def sprinkle!
+      wanted_zones = self.hosted_zones
+
       # 1. Make sure all self.hosted_zones exists at AWS
       # 2. DIFF AWS.hosted_zones versus self.hosted_zones
       # 3. Show the diff nicely

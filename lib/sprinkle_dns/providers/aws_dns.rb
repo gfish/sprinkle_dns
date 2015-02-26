@@ -4,6 +4,8 @@ require 'sprinkle_dns/zone_entry'
 module SprinkleDNS
 
   class AwsDNS
+    attr_reader :hosted_zones
+
     def initialize(aws_access_key_id, aws_secret_access_key)
       @dns = Fog::DNS.new({
         provider:              'AWS',
