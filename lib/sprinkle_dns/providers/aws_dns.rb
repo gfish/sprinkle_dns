@@ -14,9 +14,11 @@ module SprinkleDNS
       })
 
       @hosted_zones = {}
+      @zone_ids = {}
 
       @dns.zones.each do |zone|
         @hosted_zones[zone.domain] = []
+        add_zone_id(zone.domain, zone.id)
 
         zone.records.each do |record|
           next if ignored_record_types.include?(record.type)
@@ -25,10 +27,19 @@ module SprinkleDNS
       end
     end
 
+    def id_for_zone(domain)
+      @zone_ids[domain]
+    end
+
    private
 
     def ignored_record_types
       ['NS','SOA']
+    end
+
+    def add_zone_id(domain, id)
+      raise "Not supported" if @zone_ids[domain]
+      @zone_ids[domain] = id
     end
   end
 

@@ -45,10 +45,20 @@ module SprinkleDNS
         puts "NOT deleting #{destroyable_zone}"
       end
 
-      # 2. DIFF AWS.hosted_zones versus self.hosted_zones
-      # 3. Show the diff nicely
-      # 4. Push all changes to AWS
-      # 5. WIN
+      hosted_zones.each do |current_zone, entries|
+        batches = entries.map do |entry|
+          {
+            :action => "UPSERT",
+            :name => entry.name,
+            :type => entry.type,
+            :ttl => entry.ttl,
+            :resource_records => entry.value
+          }
+        end
+        # TODO: Deletions?
+
+        @dns.change_resource_record_sets(@aws.id_for_zone(current_zone), batches)
+      end
     end
 
    private
