@@ -58,7 +58,15 @@ module SprinkleDNS
         end
         # TODO: Deletions of entries
 
-        @dns.change_resource_record_sets(@aws.id_for_zone(current_zone), batches)
+        response = @dns.change_resource_record_sets(@aws.id_for_zone(current_zone), batches)
+        if StandardError === response
+          puts  response.message
+          puts  response.backtrace
+          raise response
+        else
+          puts " #{response.status}"
+          puts " #{response.body.inspect}"
+        end
         puts entries.map(&:to_s)
       end
     end
