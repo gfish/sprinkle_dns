@@ -56,7 +56,7 @@ module SprinkleDNS
             :resource_records => entry.value
           }
         end
-        # TODO: Deletions?
+        # TODO: Deletions of entries
 
         @dns.change_resource_record_sets(@aws.id_for_zone(current_zone), batches)
         puts entries.map(&:to_s)
