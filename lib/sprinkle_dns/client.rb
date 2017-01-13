@@ -74,11 +74,8 @@ module SprinkleDNS
    private
 
     def zonify(name)
-      if name.end_with?('.')
-        name
-      else
-        "#{name}."
-      end
+      name = "#{name}." unless name.end_with?('.')
+      name
     end
 
     def init_hosted_zone(zone_domain)
