@@ -1,5 +1,5 @@
 module SprinkleDNS
-  class ZoneDomain
+  class HostedZoneDomain
     def self.parse(domain)
       splitted = domain.split('.')
 
