@@ -1,3 +1,5 @@
+require 'aws-sdk'
+
 module SprinkleDNS
 
   class Route53Client
@@ -7,7 +9,7 @@ module SprinkleDNS
       @r53client = Aws::Route53::Client.new(
         access_key_id: aws_access_key_id,
         secret_access_key: aws_secret_access_key,
-        region: 'us-east-1'
+        region: 'us-east-1',
       )
 
       @included_hosted_zones = []
@@ -61,7 +63,6 @@ module SprinkleDNS
       existing_resource_record_sets = []
 
       while(more_pages)
-        # TODO test for errors!
         data = @r53client.list_resource_record_sets(
           hosted_zone_id: hosted_zone.hosted_zone_id,
           max_items: nil,
