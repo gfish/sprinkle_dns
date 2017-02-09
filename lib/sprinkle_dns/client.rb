@@ -1,3 +1,4 @@
+require 'sprinkle_dns/hosted_zone'
 require 'sprinkle_dns/hosted_zone_domain'
 require 'sprinkle_dns/hosted_zone_entry'
 require 'sprinkle_dns/core_ext/array_wrap'
