@@ -16,9 +16,19 @@ module SprinkleDNS
       @hosted_zones          = []
     end
 
-    def add_hosted_zone(hosted_zone_name)
-      @included_hosted_zones << zonify!(hosted_zone_name)
+    def set_hosted_zones(hosted_zone_names)
+      @included_hosted_zones = Array.wrap(hosted_zone_names).map{|hzn| zonify!(hzn)}
+      @hosted_zones          = []
+
+      get_hosted_zones!
     end
+
+    def add_or_update_hosted_zone_entry(hosted_zone_entry)
+      hosted_zone = @hosted_zones.select{|hz| hz.name == hosted_zone_entry.hosted_zone}.first
+      hosted_zone.add_or_update_hosted_zone_entry(hosted_zone_entry)
+    end
+
+    private
 
     def get_hosted_zones!
       hosted_zones = []
@@ -48,8 +58,6 @@ module SprinkleDNS
 
       @hosted_zones = hosted_zones
     end
-
-    private
 
     def ignored_record_types
       ['NS','SOA']

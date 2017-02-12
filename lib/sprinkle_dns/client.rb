@@ -24,45 +24,13 @@ module SprinkleDNS
     end
 
     def sprinkle!
-      @wanted_zones.each do |hosted_zone_name, hosted_zone_entries|
-        @r53client.add_hosted_zone(hosted_zone_name)
-      end
-      existing_zones = @r53client.get_hosted_zones!
+      @r53client.set_hosted_zones(@wanted_zones.keys)
 
-      _hosted_zones = {}
-      existing_zones.each do |hosted_zone|
-        _hosted_zones[hosted_zone.name] = hosted_zone.resource_record_sets
-      end
       @wanted_zones.each do |hosted_zone_name, hosted_zone_entries|
-        _hosted_zones[hosted_zone_name] ||= []
-
         hosted_zone_entries.each do |wanted_entry|
-          hze = _hosted_zones[hosted_zone_name].select{|hze| hze.type == wanted_entry.type && hze.name == wanted_entry.name}.first
-
-          if !hze.nil?
-            hze.modify(
-              wanted_entry.type,
-              wanted_entry.name,
-              wanted_entry.value,
-              wanted_entry.ttl,
-            )
-            hze.mark_referenced!
-          else
-            wanted_entry.mark_new!
-            wanted_entry.mark_referenced!
-            _hosted_zones[hosted_zone_name] << wanted_entry
-          end
+          @r53client.add_or_update_hosted_zone_entry(wanted_entry)
         end
       end
-
-      _hosted_zones.each do |hosted_zone, hosted_zone_entries|
-        to_create = hosted_zone_entries.select{|hze| hze.referenced?}.select{|hze| hze.new?}
-        to_update = hosted_zone_entries.select{|hze| hze.referenced?}.select{|hze| hze.changed? && !hze.new?}
-        to_delete = hosted_zone_entries.select{|hze| !hze.referenced?}
-
-        raise if hosted_zone_entries.size != [to_create, to_update, to_delete].map(&:size).sum
-      end
-
     end
   end
 
