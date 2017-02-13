@@ -37,7 +37,7 @@ module SprinkleDNS
       @resource_record_sets.select{|hze| !hze.referenced?}
     end
 
-    def changes_made?
+    def modified?
       [entries_to_create, entries_to_update, entries_to_delete].map(&:size).inject(:+) > 0
     end
 
