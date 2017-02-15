@@ -77,7 +77,7 @@ module SprinkleDNS
         }
       })
 
-      print "\nPROPAGATING #{hosted_zone.name}"
+      print "PROPAGATING #{hosted_zone.name}"
       if change_batch_options.any?
         begin
           resp = @r53client.get_change({
@@ -147,14 +147,13 @@ module SprinkleDNS
         next_record_name       = data.next_record_name
         next_record_type       = data.next_record_type
         next_record_identifier = data.next_record_identifier
-        print '.'
 
         data.resource_record_sets.each do |rrs|
           next if ignored_record_types.include?(rrs.type)
           existing_resource_record_sets << HostedZoneEntry.new(rrs.type, rrs.name, rrs.resource_records.map(&:value), rrs.ttl, hosted_zone.name)
         end
       end
-      puts
+
       existing_resource_record_sets
     end
   end
