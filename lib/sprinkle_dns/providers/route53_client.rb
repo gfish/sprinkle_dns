@@ -28,7 +28,7 @@ module SprinkleDNS
       hosted_zone.add_or_update_hosted_zone_entry(hosted_zone_entry)
     end
 
-    def sync!(hosted_zone)
+    def sync_hosted_zone!(hosted_zone)
       hosted_zone = @hosted_zones.select{|hz| hz.name == hosted_zone.name}.first
       raise if hosted_zone.nil?
 
