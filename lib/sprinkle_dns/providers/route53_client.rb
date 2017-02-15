@@ -85,7 +85,7 @@ module SprinkleDNS
           })
           sleep(3)
           print '.'
-        end while(resp.change_info.status != 'INSYNC')
+        end while(resp.change_info.status == 'PENDING')
         puts ' SYNCED!'
       else
         puts ' NO WORK TO DO!'
