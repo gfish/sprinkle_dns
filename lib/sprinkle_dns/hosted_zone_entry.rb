@@ -54,9 +54,6 @@ module SprinkleDNS
       @changed_value = true if @original_value != @value
       @changed_ttl   = true if @original_ttl   != @ttl
 
-      puts "OLD=#{@original_value}, NEW=#{@value}" if @changed_value
-      puts "OLD=#{@original_ttl}, NEW=#{@ttl}"     if @changed_ttl
-
       self.changed?
     end
 
