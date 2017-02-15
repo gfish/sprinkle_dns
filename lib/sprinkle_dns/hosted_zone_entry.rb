@@ -45,24 +45,16 @@ module SprinkleDNS
       @referenced
     end
 
-    def modify(type, name, value, ttl)
-      _type  = @type
-      _name  = @name
+    def modify(value, ttl)
       _value = @value
       _ttl   = @ttl
 
-      @type  = type
-      @name  = name
       @value = value
       @ttl   = ttl
 
-      @changed_type  = true if _type  != @type
-      @changed_name  = true if _name  != @name
       @changed_value = true if _value != @value
       @changed_ttl   = true if _ttl   != @ttl
 
-      puts "OLD=#{_type}, NEW=#{@type}"   if @changed_type
-      puts "OLD=#{_name}, NEW=#{@name}"   if @changed_name
       puts "OLD=#{_value}, NEW=#{@value}" if @changed_value
       puts "OLD=#{_ttl}, NEW=#{@ttl}"     if @changed_ttl
 

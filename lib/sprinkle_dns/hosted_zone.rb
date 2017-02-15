@@ -16,7 +16,7 @@ module SprinkleDNS
       current_entry = @resource_record_sets.select{|hze| hze.type == wanted_entry.type && hze.name == wanted_entry.name}.first
 
       if current_entry
-        current_entry.modify(wanted_entry.type, wanted_entry.name, wanted_entry.value, wanted_entry.ttl)
+        current_entry.modify(wanted_entry.value, wanted_entry.ttl)
         current_entry.mark_referenced!
       else
         wanted_entry.mark_new!
