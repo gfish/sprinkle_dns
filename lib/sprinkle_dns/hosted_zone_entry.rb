@@ -5,11 +5,13 @@ module SprinkleDNS
     attr_accessor :referenced
 
     def initialize(type, name, value, ttl, hosted_zone)
-      @type        = type
-      @name        = zonify!(name)
-      @value       = Array.wrap(value)
-      @ttl         = ttl
-      @hosted_zone = hosted_zone
+      @type           = type
+      @name           = zonify!(name)
+      @value          = Array.wrap(value)
+      @original_value = @value
+      @ttl            = ttl.to_i
+      @original_ttl   = ttl
+      @hosted_zone    = hosted_zone
 
       raise if [@type, @name, @value, @ttl, @hosted_zone].any?(&:nil?)
 
@@ -46,17 +48,14 @@ module SprinkleDNS
     end
 
     def modify(value, ttl)
-      _value = @value
-      _ttl   = @ttl
-
       @value = value
       @ttl   = ttl
 
-      @changed_value = true if _value != @value
-      @changed_ttl   = true if _ttl   != @ttl
+      @changed_value = true if @original_value != @value
+      @changed_ttl   = true if @original_ttl   != @ttl
 
-      puts "OLD=#{_value}, NEW=#{@value}" if @changed_value
-      puts "OLD=#{_ttl}, NEW=#{@ttl}"     if @changed_ttl
+      puts "OLD=#{@original_value}, NEW=#{@value}" if @changed_value
+      puts "OLD=#{@original_ttl}, NEW=#{@ttl}"     if @changed_ttl
 
       self.changed?
     end
