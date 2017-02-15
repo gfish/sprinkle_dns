@@ -28,6 +28,70 @@ module SprinkleDNS
       hosted_zone.add_or_update_hosted_zone_entry(hosted_zone_entry)
     end
 
+    def sync!(hosted_zone)
+      hosted_zone = @hosted_zones.select{|hz| hz.name == hosted_zone.name}.first
+      raise if hosted_zone.nil?
+
+      change_batch_options = []
+
+      hosted_zone.entries_to_delete.each do |entry|
+        change_batch_options << {
+          action: 'DELETE',
+          resource_record_set: {
+            name: entry.name,
+            type: entry.type,
+            ttl: entry.ttl,
+            resource_records: entry.value.map{|a| {value: a}},
+          },
+        }
+      end
+
+      hosted_zone.entries_to_update.each do |entry|
+        change_batch_options << {
+          action: 'UPSERT',
+          resource_record_set: {
+            name: entry.name,
+            type: entry.type,
+            ttl: entry.ttl,
+            resource_records: entry.value.map{|a| {value: a}},
+          },
+        }
+      end
+
+      hosted_zone.entries_to_create.each do |entry|
+        change_batch_options << {
+          action: 'CREATE',
+          resource_record_set: {
+            name: entry.name,
+            type: entry.type,
+            ttl: entry.ttl,
+            resource_records: entry.value.map{|a| {value: a}},
+          },
+        }
+      end
+
+      change_request = @r53client.change_resource_record_sets({
+        hosted_zone_id: hosted_zone.hosted_zone_id,
+        change_batch: {
+          changes: change_batch_options,
+        }
+      })
+
+      print "\nPROPAGATING #{hosted_zone.name}"
+      if change_batch_options.any?
+        begin
+          resp = @r53client.get_change({
+            id: change_request.change_info.id
+          })
+          sleep(3)
+          print '.'
+        end while(resp.change_info.status != 'INSYNC')
+        puts ' SYNCED!'
+      else
+        puts ' NO WORK TO DO!'
+      end
+    end
+
     private
 
     def get_hosted_zones!
