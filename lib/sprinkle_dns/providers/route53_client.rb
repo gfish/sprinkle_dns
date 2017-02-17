@@ -136,8 +136,8 @@ module SprinkleDNS
       end
 
       if @included_hosted_zones.size != hosted_zones.size
-        missing_hosted_zones = (@included_hosted_zones - hosted_zones).join(',')
-        raise "Whooops, missing hosted zones: #{missing_hosted_zones}"
+        missing_hosted_zones = (@included_hosted_zones - hosted_zones.map(&:name)).join(',')
+        raise "Whooops, the following hosted zones does not exist: #{missing_hosted_zones}"
       end
 
       @hosted_zones = hosted_zones
