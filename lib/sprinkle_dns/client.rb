@@ -32,13 +32,7 @@ module SprinkleDNS
         end
       end
 
-      @r53client.hosted_zones.each do |hosted_zone|
-        unless hosted_zone.modified?
-          puts "#{hosted_zone.name} IS IN SYNC, SKIPPING!"
-        else
-          @r53client.sync_hosted_zone!(hosted_zone)
-        end
-      end
+      @r53client.sync!
     end
   end
 
