@@ -77,12 +77,10 @@ module SprinkleDNS
         }
       })
 
-      print "PROPAGATING #{hosted_zone.name}"
+      print "PROPAGATING #{hosted_zone.name}."
       if change_batch_options.any?
         begin
-          resp = @r53client.get_change({
-            id: change_request.change_info.id
-          })
+          resp = @r53client.get_change({id: change_request.change_info.id})
           sleep(3)
           print '.'
         end while(resp.change_info.status == 'PENDING')
