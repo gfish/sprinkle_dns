@@ -105,12 +105,13 @@ module SprinkleDNS
       lines = []
 
       change_requests.each do |change_request|
-        dots = '.' * change_request.tries
-        sync = change_request.in_sync ? '✔' : '✘'
-        lines << "PROPAGATING #{change_request.hosted_zone.name}#{dots} #{sync}"
+        dots   = '.' * change_request.tries
+        sync   = change_request.in_sync ? '✔' : '✘'
+        status = change_request.in_sync ? 'PROPAGATED' : 'PROPAGATING'
+        lines << "#{sync} #{status} #{change_request.hosted_zone.name}#{dots}"
       end
 
-      clear = clear_lines ? ("\r" + ("\e[A\e[K") * change_requests.size) : ""
+      clear = clear_lines ? ("\r" + ("\e[A\e[K") * change_requests.size) : ''
       puts clear + lines.join("\n")
     end
 
