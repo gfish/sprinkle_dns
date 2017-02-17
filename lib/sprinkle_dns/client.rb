@@ -20,7 +20,7 @@ module SprinkleDNS
         value = Array.wrap(value)
         value.map!{|v| zonify!(v)}
       end
-      @wanted_zones[hosted_zone] << HostedZoneEntry.new(type, zonify!(name), Array.wrap(value), ttl.to_s, zonify!(hosted_zone))
+      @wanted_zones[hosted_zone] << HostedZoneEntry.new(type, zonify!(name), Array.wrap(value), ttl, zonify!(hosted_zone))
     end
 
     def sprinkle!
