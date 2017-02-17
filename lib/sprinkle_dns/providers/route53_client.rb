@@ -1,6 +1,7 @@
 require 'aws-sdk'
 
 module SprinkleDNS
+  Route53ChangeRequest = Struct.new(:hosted_zone, :change_info_id, :tries, :in_sync)
 
   class Route53Client
     attr_reader :hosted_zones
@@ -28,69 +29,90 @@ module SprinkleDNS
       hosted_zone.add_or_update_hosted_zone_entry(hosted_zone_entry)
     end
 
-    def sync_hosted_zone!(hosted_zone)
-      hosted_zone = @hosted_zones.select{|hz| hz.name == hosted_zone.name}.first
-      raise if hosted_zone.nil?
+    def sync!
+      change_requests = []
 
-      change_batch_options = []
+      hosted_zones.each do |hosted_zone|
+        change_batch_options = []
 
-      hosted_zone.entries_to_delete.each do |entry|
-        change_batch_options << {
-          action: 'DELETE',
-          resource_record_set: {
-            name: entry.name,
-            type: entry.type,
-            ttl: entry.ttl,
-            resource_records: entry.value.map{|a| {value: a}},
-          },
-        }
+        hosted_zone.entries_to_delete.each do |entry|
+          change_batch_options << {
+            action: 'DELETE',
+            resource_record_set: {
+              name: entry.name,
+              type: entry.type,
+              ttl: entry.ttl,
+              resource_records: entry.value.map{|a| {value: a}},
+            },
+          }
+        end
+
+        hosted_zone.entries_to_update.each do |entry|
+          change_batch_options << {
+            action: 'UPSERT',
+            resource_record_set: {
+              name: entry.name,
+              type: entry.type,
+              ttl: entry.ttl,
+              resource_records: entry.value.map{|a| {value: a}},
+            },
+          }
+        end
+
+        hosted_zone.entries_to_create.each do |entry|
+          change_batch_options << {
+            action: 'CREATE',
+            resource_record_set: {
+              name: entry.name,
+              type: entry.type,
+              ttl: entry.ttl,
+              resource_records: entry.value.map{|a| {value: a}},
+            },
+          }
+        end
+
+        if change_batch_options.any?
+          change_request = @r53client.change_resource_record_sets({
+            hosted_zone_id: hosted_zone.hosted_zone_id,
+            change_batch: {
+              changes: change_batch_options,
+            }
+          })
+          change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
+        else
+          change_requests << Route53ChangeRequest.new(hosted_zone, nil, 1, true)
+        end
       end
 
-      hosted_zone.entries_to_update.each do |entry|
-        change_batch_options << {
-          action: 'UPSERT',
-          resource_record_set: {
-            name: entry.name,
-            type: entry.type,
-            ttl: entry.ttl,
-            resource_records: entry.value.map{|a| {value: a}},
-          },
-        }
-      end
+      redraw_change_request_state(change_requests, false)
+      begin
+        redraw_change_request_state(change_requests)
 
-      hosted_zone.entries_to_create.each do |entry|
-        change_batch_options << {
-          action: 'CREATE',
-          resource_record_set: {
-            name: entry.name,
-            type: entry.type,
-            ttl: entry.ttl,
-            resource_records: entry.value.map{|a| {value: a}},
-          },
-        }
-      end
+        change_requests.reject{|cr| cr.in_sync}.each do |change_request|
+          resp = @r53client.get_change({id: change_request.change_info_id})
+          change_request.in_sync = resp.change_info.status == 'INSYNC'
+          change_request.tries  += 1
+        end
 
-      change_request = @r53client.change_resource_record_sets({
-        hosted_zone_id: hosted_zone.hosted_zone_id,
-        change_batch: {
-          changes: change_batch_options,
-        }
-      })
-
-      print "PROPAGATING #{hosted_zone.name}."
-      if change_batch_options.any?
-        begin
-          resp = @r53client.get_change({id: change_request.change_info.id})
-          sleep(3)
-          print '.'
-        end while(resp.change_info.status == 'PENDING')
-        puts ' SYNCED!'
-      else
-        puts ' NO WORK TO DO!'
-      end
+        redraw_change_request_state(change_requests)
+        sleep(3)
+      end while(!change_requests.all?{|cr| cr.in_sync})
     end
 
     private
+
+    def redraw_change_request_state(change_requests, clear_lines = true)
+      lines = []
+
+      change_requests.each do |change_request|
+        dots = '.' * change_request.tries
+        sync = change_request.in_sync ? '✔' : '✘'
+        lines << "PROPAGATING #{change_request.hosted_zone.name}#{dots} #{sync}"
+      end
+
+      clear = clear_lines ? ("\r" + ("\e[A\e[K") * change_requests.size) : ""
+      puts clear + lines.join("\n")
+    end
 
     def get_hosted_zones!
       hosted_zones = []
