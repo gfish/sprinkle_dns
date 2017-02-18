@@ -9,7 +9,7 @@ module SprinkleDNS
       @name           = zonify!(name)
       @value          = Array.wrap(value)
       @original_value = @value
-      @ttl            = ttl.to_i
+      @ttl            = ttl
       @original_ttl   = ttl
       @hosted_zone    = hosted_zone
 
