@@ -7,8 +7,9 @@ require 'sprinkle_dns/core_ext/zonify'
 
 module SprinkleDNS
   class Client
-    def initialize(r53client)
-      @r53client    = r53client
+
+    def initialize(dns_provider)
+      @dns_provider = dns_provider
       @wanted_zones = {}
     end
 
@@ -25,15 +26,15 @@ module SprinkleDNS
     end
 
     def sprinkle!
-      @r53client.set_hosted_zones(@wanted_zones.keys)
+      @dns_provider.set_hosted_zones(@wanted_zones.keys)
 
       @wanted_zones.each do |hosted_zone_name, hosted_zone_entries|
         hosted_zone_entries.each do |wanted_entry|
-          @r53client.add_or_update_hosted_zone_entry(wanted_entry)
+          @dns_provider.add_or_update_hosted_zone_entry(wanted_entry)
         end
       end
 
-      @r53client.sync!
+      @dns_provider.sync!
     end
   end
 
