@@ -50,7 +50,7 @@ module SprinkleDNS
     end
 
     def add_zone_id(domain, id)
-      raise "Not supported" if @zone_ids[domain]
+      raise "Can't add #{domain}. Not supported!" if @zone_ids[domain]
       @zone_ids[domain] = id
     end
   end
