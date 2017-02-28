@@ -1,3 +1,4 @@
+require 'sprinkle_dns/exceptions'
 require 'sprinkle_dns/hosted_zone'
 require 'sprinkle_dns/hosted_zone_domain'
 require 'sprinkle_dns/hosted_zone_entry'

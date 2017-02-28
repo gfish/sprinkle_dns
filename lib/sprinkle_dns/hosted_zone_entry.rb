@@ -14,12 +14,14 @@ module SprinkleDNS
       @hosted_zone    = hosted_zone
 
       raise if [@type, @name, @value, @ttl, @hosted_zone].any?(&:nil?)
+      raise SprinkleDNS::RecordNotAString.new('Record-type should be a string') unless @type.is_a?(String)
+      raise SprinkleDNS::RecordNotValid.new("Record #{@type} is not supported") if !valid_record_types.include?(@type)
+      raise SprinkleDNS::TtlNotInteger.new('TTL should be an integer') unless @ttl.is_a?(Integer)
 
       @changed_type  = false
       @changed_name  = false
       @changed_value = false
       @changed_ttl   = false
-
       @referenced    = false
 
       if ['CNAME', 'MX'].include?(type)
@@ -72,6 +74,12 @@ module SprinkleDNS
         sprintf("%6s", ttl),
         sprintf("%6s", hosted_zone),
       ].join(" ")
+    end
+
+    private
+
+    def valid_record_types
+      ['SOA','A','TXT','NS','CNAME','MX','NAPTR','PTR','SRV','SPF','AAAA']
     end
 
   end

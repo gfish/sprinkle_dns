@@ -17,4 +17,58 @@ RSpec.describe SprinkleDNS::Client do
     # TODO verify the entries
   end
 
+  context 'record validation' do
+    it 'should only allow valid string records' do
+      valid_records = ['SOA','A','TXT','NS','CNAME','MX','NAPTR','PTR','SRV','SPF','AAAA']
+
+      valid_records.each do |record_type|
+        r53c = SprinkleDNS::Route53Client.new('1','2')
+        sdns = SprinkleDNS::Client.new(r53c)
+
+        sdns.entry(record_type, 'kaspergrubbe.com', '88.80.80.80')
+      end
+    end
+
+    it 'should not allow symbols for records' do
+      invalid_records = [:SOA, :A, :TXT, :NS, :CNAME, :MX, :NAPTR, :PTR, :SRV, :SPF, :AAAA]
+
+      invalid_records.each do |record_type|
+        r53c = SprinkleDNS::Route53Client.new('1','2')
+        sdns = SprinkleDNS::Client.new(r53c)
+
+        expect{sdns.entry(record_type, 'kaspergrubbe.com', '88.80.80.80')}.to raise_error(SprinkleDNS::RecordNotAString)
+      end
+    end
+
+    it 'should not allow other types of records' do
+      invalid_records = ['a', 'r', 'p']
+
+      invalid_records.each do |record_type|
+        r53c = SprinkleDNS::Route53Client.new('1','2')
+        sdns = SprinkleDNS::Client.new(r53c)
+
+        expect{sdns.entry(record_type, 'kaspergrubbe.com', '88.80.80.80')}.to raise_error(SprinkleDNS::RecordNotValid)
+      end
+    end
+  end
+
+  context 'ttl validation' do
+    it 'should allow integers' do
+      (1..(3600*60)).minmax.each do |ttl|
+        r53c = SprinkleDNS::Route53Client.new('1','2')
+        sdns = SprinkleDNS::Client.new(r53c)
+
+        sdns.entry('A', 'kaspergrubbe.com', '88.80.80.80', ttl)
+      end
+    end
+
+    it 'should not allow strings' do
+      (1..(3600*60)).minmax.each do |ttl|
+        r53c = SprinkleDNS::Route53Client.new('1','2')
+        sdns = SprinkleDNS::Client.new(r53c)
+
+        expect{sdns.entry('A', 'kaspergrubbe.com', '88.80.80.80', ttl.to_s)}.to raise_error(SprinkleDNS::TtlNotInteger)
+      end
+    end
+  end
 end
