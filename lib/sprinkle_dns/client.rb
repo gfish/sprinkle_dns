@@ -1,88 +1,40 @@
-require 'sprinkle_dns/zone_domain'
-require 'sprinkle_dns/zone_entry'
-require 'sprinkle_dns/core_ext'
-require 'sprinkle_dns/providers/aws_dns'
-require 'fog'
+require 'sprinkle_dns/exceptions'
+require 'sprinkle_dns/hosted_zone'
+require 'sprinkle_dns/hosted_zone_domain'
+require 'sprinkle_dns/hosted_zone_entry'
+require 'sprinkle_dns/core_ext/array_wrap'
+require 'sprinkle_dns/core_ext/zonify'
 
 module SprinkleDNS
   class Client
 
-    attr_reader :hosted_zones
-
-    def initialize(aws_access_key_id, aws_secret_access_key)
-      @hosted_zones           = {}
-      @aws_access_key_id      = aws_access_key_id
-      @aws_secret_access_key  = aws_secret_access_key
-      @aws = SprinkleDNS::AwsDNS.new(aws_access_key_id, aws_secret_access_key)
-      @dns = Fog::DNS.new({
-        provider:              'AWS',
-        aws_access_key_id:     aws_access_key_id,
-        aws_secret_access_key: aws_secret_access_key,
-      })
+    def initialize(dns_provider)
+      @dns_provider = dns_provider
+      @wanted_zones = {}
     end
 
-    def entry(type, name, value, ttl = 3600)
-      zone_domain = ZoneDomain::parse(name)
-      init_hosted_zone(zone_domain)
+    def entry(type, name, value, ttl = 3600, hosted_zone = nil)
+      hosted_zone                ||= HostedZoneDomain::parse(name)
+      hosted_zone                  = zonify!(hosted_zone)
+      @wanted_zones[hosted_zone] ||= []
 
       if ['CNAME', 'MX'].include?(type)
         value = Array.wrap(value)
-
-        value.map!{|v| zonify(v)}
+        value.map!{|v| zonify!(v)}
       end
-
-      @hosted_zones[zone_domain] << ZoneEntry.new(type, zonify(name), Array.wrap(value), ttl.to_s)
+      @wanted_zones[hosted_zone] << HostedZoneEntry.new(type, zonify!(name), Array.wrap(value), ttl, zonify!(hosted_zone))
     end
 
     def sprinkle!
-      wanted_zones   = self.hosted_zones.keys
-      existing_zones = @aws.hosted_zones.keys
-      (wanted_zones - existing_zones).each do |new_zone|
-        @aws.create_hosted_zone(new_zone)
-        puts "Created hosted zone: #{new_zone}"
-      end
-      (existing_zones - wanted_zones).each do |destroyable_zone|
-        # TODO
-        puts "NOT deleting hosted zone #{destroyable_zone}"
-      end
+      @dns_provider.set_hosted_zones(@wanted_zones.keys)
 
-      hosted_zones.each do |current_zone, entries|
-        batches = entries.map do |entry|
-          {
-            :action => "UPSERT",
-            :name => entry.name,
-            :type => entry.type,
-            :ttl => entry.ttl,
-            :resource_records => entry.value
-          }
+      @wanted_zones.each do |hosted_zone_name, hosted_zone_entries|
+        hosted_zone_entries.each do |wanted_entry|
+          @dns_provider.add_or_update_hosted_zone_entry(wanted_entry)
         end
-        # TODO: Deletions of entries
-
-        response = @dns.change_resource_record_sets(@aws.id_for_zone(current_zone), batches)
-        if StandardError === response
-          puts  response.message
-          puts  response.backtrace
-          raise response
-        else
-          puts " #{response.status}"
-          puts " #{response.body.inspect}"
-        end
-        puts entries.map(&:to_s)
       end
-    end
 
-   private
-
-    def zonify(name)
-      if name.end_with?('.')
-        name
-      else
-        "#{name}."
-      end
-    end
-
-    def init_hosted_zone(zone_domain)
-      @hosted_zones[zone_domain] = [] if @hosted_zones[zone_domain].nil?
+      @dns_provider.sync!
     end
   end
 
