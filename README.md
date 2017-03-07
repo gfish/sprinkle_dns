@@ -1,4 +1,4 @@
-![SprinkleDNS logo](logos/SDNS.svg)
+![SprinkleDNS logo](logos/SDNS.png)
 
 # SprinkleDNS
 
