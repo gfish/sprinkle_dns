@@ -36,15 +36,19 @@ module SprinkleDNS
         change_batch_options = []
 
         hosted_zone.entries_to_delete.each do |entry|
-          change_batch_options << {
-            action: 'DELETE',
-            resource_record_set: {
-              name: entry.name,
-              type: entry.type,
-              ttl: entry.ttl,
-              resource_records: entry.value.map{|a| {value: a}},
-            },
-          }
+          # Figure out a way to pass options, and then delete
+          puts "NOT DELETING #{entry}"
+          if true == false
+            change_batch_options << {
+              action: 'DELETE',
+              resource_record_set: {
+                name: entry.name,
+                type: entry.type,
+                ttl: entry.ttl,
+                resource_records: entry.value.map{|a| {value: a}},
+              },
+            }
+          end
         end
 
         hosted_zone.entries_to_update.each do |entry|
