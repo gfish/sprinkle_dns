@@ -174,8 +174,10 @@ module SprinkleDNS
         next_record_identifier = data.next_record_identifier
 
         data.resource_record_sets.each do |rrs|
-          next if ignored_record_types.include?(rrs.type) && rrs.name == hosted_zone.name
-          existing_resource_record_sets << HostedZoneEntry.new(rrs.type, rrs.name, rrs.resource_records.map(&:value), rrs.ttl, hosted_zone.name)
+          rrs_name = rrs.name.gsub('\\052', '*')
+
+          next if ignored_record_types.include?(rrs.type) && rrs_name == hosted_zone.name
+          existing_resource_record_sets << HostedZoneEntry.new(rrs.type, rrs_name, rrs.resource_records.map(&:value), rrs.ttl, hosted_zone.name)
         end
       end
 
