@@ -140,6 +140,11 @@ module SprinkleDNS
         end
       end
 
+      if hosted_zones.size != hosted_zones.map(&:name).uniq.size
+        duplicated_hosted_zones = hosted_zones.group_by{ |i| i }.select{ |k,v| v.size > 1 }.keys.join(', ')
+        raise "Whooops, seems like you have the same hosted zone duplicated on your Route53 account!\nIt's the following: #{duplicated_hosted_zones}"
+      end
+
       if @included_hosted_zones.size != hosted_zones.size
         missing_hosted_zones = (@included_hosted_zones - hosted_zones.map(&:name)).join(',')
         raise "Whooops, the following hosted zones does not exist: #{missing_hosted_zones}"
