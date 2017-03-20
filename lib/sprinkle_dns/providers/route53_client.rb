@@ -76,12 +76,17 @@ module SprinkleDNS
         end
 
         if change_batch_options.any?
-          change_request = @r53client.change_resource_record_sets({
-            hosted_zone_id: hosted_zone.hosted_zone_id,
-            change_batch: {
-              changes: change_batch_options,
-            }
-          })
+          begin
+            change_request = @r53client.change_resource_record_sets({
+              hosted_zone_id: hosted_zone.hosted_zone_id,
+              change_batch: {
+                changes: change_batch_options,
+              }
+            })
+          rescue Aws::Route53::Errors::AccessDenied
+            # TODO extract this to custom exceptions
+            raise
+          end
           change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
         else
           change_requests << Route53ChangeRequest.new(hosted_zone, nil, 1, true)
@@ -125,13 +130,22 @@ module SprinkleDNS
       next_marker  = nil
 
       while(more_pages)
-        data = @r53client.list_hosted_zones({:max_items => nil, :marker => next_marker})
+        begin
+          data = @r53client.list_hosted_zones({:max_items => nil, :marker => next_marker})
+        rescue Aws::Route53::Errors::AccessDenied
+          # TODO extract this to custom exceptions
+          raise
+        end
 
         more_pages  = data.is_truncated
         next_marker = data.next_marker
 
         data.hosted_zones.each do |hz|
           if @included_hosted_zones.include?(hz.name)
+            if hosted_zones.map(&:name).include?(hz.name)
+              raise DuplicatedHostedZones, "Whooops, seems like you have the same hosted zone duplicated on your Route53 account!\nIt's the following: #{hz.name}"
+            end
+
             hosted_zone = HostedZone.new(hz.id, hz.name, hz.resource_record_set_count)
             hosted_zone.resource_record_sets = get_resource_record_set!(hosted_zone)
 
@@ -140,14 +154,9 @@ module SprinkleDNS
         end
       end
 
-      if hosted_zones.size != hosted_zones.map(&:name).uniq.size
-        duplicated_hosted_zones = hosted_zones.group_by{ |i| i }.select{ |k,v| v.size > 1 }.keys.join(', ')
-        raise "Whooops, seems like you have the same hosted zone duplicated on your Route53 account!\nIt's the following: #{duplicated_hosted_zones}"
-      end
-
       if @included_hosted_zones.size != hosted_zones.size
         missing_hosted_zones = (@included_hosted_zones - hosted_zones.map(&:name)).join(',')
-        raise "Whooops, the following hosted zones does not exist: #{missing_hosted_zones}"
+        raise MissingHostedZones, "Whooops, the following hosted zones does not exist: #{missing_hosted_zones}"
       end
 
       @hosted_zones = hosted_zones
@@ -179,6 +188,7 @@ module SprinkleDNS
         next_record_identifier = data.next_record_identifier
 
         data.resource_record_sets.each do |rrs|
+          # TODO add spec for this
           rrs_name = rrs.name.gsub('\\052', '*')
 
           next if ignored_record_types.include?(rrs.type) && rrs_name == hosted_zone.name

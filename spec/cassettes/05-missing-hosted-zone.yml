@@ -1,0 +1,51 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://route53.amazonaws.com/2013-04-01/hostedzone
+    body:
+      encoding: ASCII-8BIT
+      string: ''
+    headers:
+      Content-Type:
+      - ''
+      Accept-Encoding:
+      - ''
+      User-Agent:
+      - aws-sdk-ruby2/2.1.36 ruby/2.4.0 x86_64-darwin15
+      X-Amz-Date:
+      - 20170320T124910Z
+      Host:
+      - route53.amazonaws.com
+      X-Amz-Content-Sha256:
+      - e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      Authorization:
+      - AWS4-HMAC-SHA256 Credential=AKIAIAJEZRSZTE3MXI7Q/20170320/us-east-1/route53/aws4_request,
+        SignedHeaders=host;user-agent;x-amz-content-sha256;x-amz-date, Signature=6dfb05ae76de2d78a4d8f7d4d89f0d634e84af9d3e585f907afd29f655bf14d8
+      Content-Length:
+      - '0'
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      X-Amzn-Requestid:
+      - 9d9ddd96-0d6b-11e7-ad68-41d929cac247
+      Content-Type:
+      - text/xml
+      Content-Length:
+      - '8513'
+      Vary:
+      - Accept-Encoding
+      Date:
+      - Mon, 20 Mar 2017 12:49:11 GMT
+    body:
+      encoding: UTF-8
+      string: |-
+        <?xml version="1.0"?>
+        <ListHostedZonesResponse xmlns="https://route53.amazonaws.com/doc/2013-04-01/"><HostedZones><HostedZone><Id>/hostedzone/Z21BGVSMXQ6LMH</Id><Name>billetto.be.</Name><CallerReference>ref-349775</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZLK1GZ29DX8VL</Id><Name>billetto.lv.</Name><CallerReference>ref-156215</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>19</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZU8A70RBZIWV6</Id><Name>billetto.pl.</Name><CallerReference>ref-803164</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z31MKGVNWWMSYW</Id><Name>billetto.at.</Name><CallerReference>ref-520565</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z11IFAN8BE06HN</Id><Name>billetto.cz.</Name><CallerReference>ref-913869</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z1E547T6OWYV5W</Id><Name>billetto.it.</Name><CallerReference>ref-791817</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z321NYCRLD5KMY</Id><Name>billetto.ch.</Name><CallerReference>ref-117394</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>19</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z3331BU8TEGK0X</Id><Name>billetto.es.</Name><CallerReference>ref-972093</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZOE3LF626AVSH</Id><Name>billetto.fi.</Name><CallerReference>ref-41096</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z1JINE9EF8QJZP</Id><Name>billetto.li.</Name><CallerReference>ref-706470</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>19</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZJAYMLORJ97NG</Id><Name>billetto.eu.</Name><CallerReference>ref-615731</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z3033EPZ4XP5QP</Id><Name>billetto.fr.</Name><CallerReference>ref-283008</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z18N8275FYTGEW</Id><Name>billetto.nl.</Name><CallerReference>ref-9275</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZCRCNYDL5RGO6</Id><Name>billetto.us.</Name><CallerReference>RISWorkflow-e21d33fac5c47b221d3b75bf7b648d39</CallerReference><Config><Comment>HostedZone created by Route53 Registrar</Comment><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>18</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z2LNIUA1T91ODS</Id><Name>billetto.co.</Name><CallerReference>RISWorkflow-2cad822e1a722516531443ecf9ccf24b</CallerReference><Config><Comment>HostedZone created by Route53 Registrar</Comment><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>18</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z2ESY1UA5REZEX</Id><Name>billetto.io.</Name><CallerReference>RISWorkflow-1b3a34e25b8bda8fe095e134983a18ff</CallerReference><Config><Comment>HostedZone created by Route53 Registrar</Comment><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>18</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZK78U6XOYJDMS</Id><Name>billetto.com.</Name><CallerReference>4CC8ABCE-FD4E-E1D7-9945-F5F845C321F9</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>43</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZG3NEDB5M69W5</Id><Name>billetto.ie.</Name><CallerReference>74176190-5181-515B-A30A-CA8AF8FF9386</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZTY1328UU88HP</Id><Name>billetto.org.</Name><CallerReference>ref-505962</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>19</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZMB8M8SL36W8Q</Id><Name>billetto.se.</Name><CallerReference>ref-426327</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>20</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z3QSJYRJI7UJJU</Id><Name>billetto.co.uk.</Name><CallerReference>ref-610580</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>21</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZI6EIXMCWIJ8K</Id><Name>billetto.dk.</Name><CallerReference>ref-128453</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>43</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z3E12SQIZCX0SL</Id><Name>billetto.no.</Name><CallerReference>ref-366826</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>19</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z3RBJ6QBOFIZ1K</Id><Name>es.billetto.com.</Name><CallerReference>EB104DDC-D3DE-208C-9F9B-6C0F638B4D6C</CallerReference><Config><Comment>For our elasticsearch cluster</Comment><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>6</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z2KB0SI502JDZ</Id><Name>billetto.sg.</Name><CallerReference>B50B6187-4D00-8986-AF13-D1F92DEE795E</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>19</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z28X079NFKIEXE</Id><Name>billetto.ae.</Name><CallerReference>4D4CEB0D-B2C7-3450-AFA6-016EE42089CD</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>19</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z79MHT4CVOP25</Id><Name>billetto.my.</Name><CallerReference>8923EE40-2142-296F-8E71-FBD45F9D64DA</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>19</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z3UTYOMIKGKD8G</Id><Name>billetto.co.th.</Name><CallerReference>E0AB37CF-C507-A6AA-86CC-DA32E0075EDA</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>2</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z7G5PB1VD6KFN</Id><Name>billet.to.</Name><CallerReference>FDC67ED8-AD56-35C4-ACBD-6E79CA3574B9</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>18</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/ZA8NWWA284JZE</Id><Name>billetto.gr.</Name><CallerReference>DD6F4A08-F429-9A6D-B579-2F802AACD6F3</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>18</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z2WKXPTDW4ZU6S</Id><Name>billetto.uk.</Name><CallerReference>6891C912-C0DE-CF25-9BEC-F49F4767DC14</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>18</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z4HIGH63KJI3Y</Id><Name>billetto.me.</Name><CallerReference>RISWorkflow-RD:cd29178c-bcd1-42bc-b721-51333bf964ec</CallerReference><Config><Comment>HostedZone created by Route53 Registrar</Comment><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>17</ResourceRecordSetCount></HostedZone><HostedZone><Id>/hostedzone/Z2TAYJZODNBHR7</Id><Name>test.noaccess.billetto.com.</Name><CallerReference>F880172D-021E-9A93-BDC7-170EC13F927A</CallerReference><Config><PrivateZone>false</PrivateZone></Config><ResourceRecordSetCount>4</ResourceRecordSetCount></HostedZone></HostedZones><IsTruncated>false</IsTruncated><MaxItems>100</MaxItems></ListHostedZonesResponse>
+    http_version: 
+  recorded_at: Mon, 20 Mar 2017 12:49:11 GMT
+recorded_with: VCR 3.0.3

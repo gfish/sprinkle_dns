@@ -1,4 +1,5 @@
 require 'sprinkle_dns'
+require_relative 'test_perms'
 
 client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
 sdns   = SprinkleDNS::Client.new(client)

@@ -22,6 +22,14 @@ require 'bundler/setup'
 
 require 'sprinkle_dns'
 
+require 'vcr'
+
+VCR.configure do |c|
+  c.allow_http_connections_when_no_cassette = false
+  c.hook_into :webmock
+  c.cassette_library_dir = 'spec/cassettes'
+end
+
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
