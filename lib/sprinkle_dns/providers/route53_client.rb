@@ -178,6 +178,7 @@ module SprinkleDNS
         next_record_identifier = data.next_record_identifier
 
         data.resource_record_sets.each do |rrs|
+          # TODO add spec for this
           rrs_name = rrs.name.gsub('\\052', '*')
 
           next if ignored_record_types.include?(rrs.type) && rrs_name == hosted_zone.name
