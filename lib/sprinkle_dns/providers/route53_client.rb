@@ -76,12 +76,17 @@ module SprinkleDNS
         end
 
         if change_batch_options.any?
-          change_request = @r53client.change_resource_record_sets({
-            hosted_zone_id: hosted_zone.hosted_zone_id,
-            change_batch: {
-              changes: change_batch_options,
-            }
-          })
+          begin
+            change_request = @r53client.change_resource_record_sets({
+              hosted_zone_id: hosted_zone.hosted_zone_id,
+              change_batch: {
+                changes: change_batch_options,
+              }
+            })
+          rescue Aws::Route53::Errors::AccessDenied
+            # TODO extract this to custom exceptions
+            raise
+          end
           change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
         else
           change_requests << Route53ChangeRequest.new(hosted_zone, nil, 1, true)
@@ -125,7 +130,12 @@ module SprinkleDNS
       next_marker  = nil
 
       while(more_pages)
-        data = @r53client.list_hosted_zones({:max_items => nil, :marker => next_marker})
+        begin
+          data = @r53client.list_hosted_zones({:max_items => nil, :marker => next_marker})
+        rescue Aws::Route53::Errors::AccessDenied
+          # TODO extract this to custom exceptions
+          raise
+        end
 
         more_pages  = data.is_truncated
         next_marker = data.next_marker
