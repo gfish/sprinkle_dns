@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe SprinkleDNS::Route53Client do
-  RSpec.describe("permissions") do
+  context("permissions") do
     it "should throw errors when ACCESS_KEY_ID and SECRET_ACCESS_KEY is revoked" do
       VCR.use_cassette("00-revoked-keys") do
         require_relative '../../testperms'
