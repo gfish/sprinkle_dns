@@ -132,17 +132,16 @@ module SprinkleDNS
 
         data.hosted_zones.each do |hz|
           if @included_hosted_zones.include?(hz.name)
+            if hosted_zones.map(&:name).include?(hz.name)
+              raise DuplicatedHostedZones, "Whooops, seems like you have the same hosted zone duplicated on your Route53 account!\nIt's the following: #{hz.name}"
+            end
+
             hosted_zone = HostedZone.new(hz.id, hz.name, hz.resource_record_set_count)
             hosted_zone.resource_record_sets = get_resource_record_set!(hosted_zone)
 
             hosted_zones << hosted_zone
           end
         end
-      end
-
-      if hosted_zones.size != hosted_zones.map(&:name).uniq.size
-        duplicated_hosted_zones = hosted_zones.group_by{ |i| i }.select{ |k,v| v.size > 1 }.keys.join(', ')
-        raise "Whooops, seems like you have the same hosted zone duplicated on your Route53 account!\nIt's the following: #{duplicated_hosted_zones}"
       end
 
       if @included_hosted_zones.size != hosted_zones.size
