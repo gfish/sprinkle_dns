@@ -4,7 +4,7 @@ RSpec.describe SprinkleDNS::Route53Client do
   context("permissions") do
     it "should throw errors when ACCESS_KEY_ID and SECRET_ACCESS_KEY is revoked" do
       VCR.use_cassette("00-revoked-keys") do
-        require_relative '../../testperms'
+        require_relative '../../test_perms'
 
         client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
         sdns   = SprinkleDNS::Client.new(client)
@@ -18,7 +18,7 @@ RSpec.describe SprinkleDNS::Route53Client do
 
     it "should throw errors when no permissions at all" do
       VCR.use_cassette("01-test-no-permissions") do
-        require_relative '../../testperms'
+        require_relative '../../test_perms'
 
         client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
         sdns   = SprinkleDNS::Client.new(client)
@@ -50,7 +50,7 @@ RSpec.describe SprinkleDNS::Route53Client do
       # }
 
       VCR.use_cassette("02-missing-resourcerecordsets-permissions") do
-        require_relative '../../testperms'
+        require_relative '../../test_perms'
         client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
         sdns   = SprinkleDNS::Client.new(client)
 
@@ -81,7 +81,7 @@ RSpec.describe SprinkleDNS::Route53Client do
       # }
 
       VCR.use_cassette("03-missing-hostedzone-write-permissions") do
-        require_relative '../../testperms'
+        require_relative '../../test_perms'
         client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
         sdns   = SprinkleDNS::Client.new(client)
 
@@ -115,7 +115,7 @@ RSpec.describe SprinkleDNS::Route53Client do
       # }
 
       VCR.use_cassette("04-missing-getchange-permissions") do
-        require_relative '../../testperms'
+        require_relative '../../test_perms'
         client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
         sdns   = SprinkleDNS::Client.new(client)
 
@@ -130,7 +130,7 @@ RSpec.describe SprinkleDNS::Route53Client do
 
     it "should throw errors when no hosted zone is created at AWS" do
       VCR.use_cassette("05-missing-hosted-zone") do
-        require_relative '../../testperms'
+        require_relative '../../test_perms'
         client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
         sdns   = SprinkleDNS::Client.new(client)
 
@@ -145,7 +145,7 @@ RSpec.describe SprinkleDNS::Route53Client do
       # Create two hosted zones with the name of: test.noaccess.billetto.com
 
       VCR.use_cassette("06-duplicate-hosted-zones") do
-        require_relative '../../testperms'
+        require_relative '../../test_perms'
         client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
         sdns   = SprinkleDNS::Client.new(client)
 
