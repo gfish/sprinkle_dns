@@ -189,8 +189,9 @@ module SprinkleDNS
 
         data.resource_record_sets.each do |rrs|
           # TODO add spec for this
-          rrs_name = rrs.name.gsub('\\052', '*')
-          rrs_name = rrs.name.gsub('\\100', '@')
+          rrs_name = rrs.name
+          rrs_name = rrs_name.gsub('\\052', '*')
+          rrs_name = rrs_name.gsub('\\100', '@')
 
           next if ignored_record_types.include?(rrs.type) && rrs_name == hosted_zone.name
           existing_resource_record_sets << HostedZoneEntry.new(rrs.type, rrs_name, rrs.resource_records.map(&:value), rrs.ttl, hosted_zone.name)
