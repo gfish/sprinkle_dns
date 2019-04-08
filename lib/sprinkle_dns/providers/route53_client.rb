@@ -54,24 +54,14 @@ module SprinkleDNS
         hosted_zone.entries_to_update.each do |entry|
           change_batch_options << {
             action: 'UPSERT',
-            resource_record_set: {
-              name: entry.name,
-              type: entry.type,
-              ttl: entry.ttl,
-              resource_records: entry.value.map{|a| {value: a}},
-            },
+            resource_record_set: entry_to_rrs(entry),
           }
         end
 
         hosted_zone.entries_to_create.each do |entry|
           change_batch_options << {
             action: 'CREATE',
-            resource_record_set: {
-              name: entry.name,
-              type: entry.type,
-              ttl: entry.ttl,
-              resource_records: entry.value.map{|a| {value: a}},
-            },
+            resource_record_set: entry_to_rrs(entry)
           }
         end
 
@@ -194,12 +184,37 @@ module SprinkleDNS
           rrs_name = rrs_name.gsub('\\100', '@')
 
           next if ignored_record_types.include?(rrs.type) && rrs_name == hosted_zone.name
-          existing_resource_record_sets << HostedZoneEntry.new(rrs.type, rrs_name, rrs.resource_records.map(&:value), rrs.ttl, hosted_zone.name)
+          if rrs.alias_target
+            existing_resource_record_sets << AliasEntry.new(rrs.type, rrs_name, rrs.alias_target.hosted_zone_id, rrs.alias_target.dns_name, hosted_zone.name)
+          else
+            existing_resource_record_sets << HostedZoneEntry.new(rrs.type, rrs_name, rrs.resource_records.map(&:value), rrs.ttl, hosted_zone.name)
+          end
         end
       end
 
       existing_resource_record_sets
     end
-  end
 
+    def entry_to_rrs(entry)
+      case entry
+      when HostedZoneEntry
+        {
+          name: entry.name,
+          type: entry.type,
+          ttl: entry.ttl,
+          resource_records: entry.value.map{|a| {value: a}},
+        }
+      when AliasEntry
+        {
+          name: entry.name,
+          type: entry.type,
+          alias_target: {
+            hosted_zone_id: entry.hosted_zone_id,
+            dns_name: entry.dns_name,
+          },
+        }
+      else raise "Unknown entry"
+      end
+    end
+  end
 end
