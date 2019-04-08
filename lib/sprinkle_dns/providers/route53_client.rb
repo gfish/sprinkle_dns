@@ -1,12 +1,13 @@
 require 'aws-sdk'
+require 'pp'
 
 module SprinkleDNS
   Route53ChangeRequest = Struct.new(:hosted_zone, :change_info_id, :tries, :in_sync)
 
   class Route53Client
-    attr_reader :hosted_zones
+    attr_reader :hosted_zones, :dry_run
 
-    def initialize(aws_access_key_id, aws_secret_access_key)
+    def initialize(aws_access_key_id, aws_secret_access_key, dry_run: false)
       @r53client = Aws::Route53::Client.new(
         access_key_id: aws_access_key_id,
         secret_access_key: aws_secret_access_key,
@@ -15,6 +16,7 @@ module SprinkleDNS
 
       @included_hosted_zones = []
       @hosted_zones          = []
+      @dry_run = dry_run
     end
 
     def set_hosted_zones(hosted_zone_names)
@@ -65,37 +67,46 @@ module SprinkleDNS
           }
         end
 
-        if change_batch_options.any?
-          begin
-            change_request = @r53client.change_resource_record_sets({
-              hosted_zone_id: hosted_zone.hosted_zone_id,
-              change_batch: {
-                changes: change_batch_options,
-              }
-            })
-          rescue Aws::Route53::Errors::AccessDenied
-            # TODO extract this to custom exceptions
-            raise
+        if dry_run
+          if change_batch_options.any?
+            puts "Would run an API call:"
+            pp change_batch_options
           end
-          change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
         else
-          change_requests << Route53ChangeRequest.new(hosted_zone, nil, 1, true)
+          if change_batch_options.any?
+            begin
+              change_request = @r53client.change_resource_record_sets({
+                hosted_zone_id: hosted_zone.hosted_zone_id,
+                change_batch: {
+                  changes: change_batch_options,
+                }
+              })
+            rescue Aws::Route53::Errors::AccessDenied
+              # TODO extract this to custom exceptions
+              raise
+            end
+            change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
+          else
+            change_requests << Route53ChangeRequest.new(hosted_zone, nil, 1, true)
+          end
         end
       end
 
-      redraw_change_request_state(change_requests, false)
-      begin
-        redraw_change_request_state(change_requests)
+      if !dry_run
+        redraw_change_request_state(change_requests, false)
+        begin
+          redraw_change_request_state(change_requests)
 
-        change_requests.reject{|cr| cr.in_sync}.each do |change_request|
-          resp = @r53client.get_change({id: change_request.change_info_id})
-          change_request.in_sync = resp.change_info.status == 'INSYNC'
-          change_request.tries  += 1
-        end
+          change_requests.reject{|cr| cr.in_sync}.each do |change_request|
+            resp = @r53client.get_change({id: change_request.change_info_id})
+            change_request.in_sync = resp.change_info.status == 'INSYNC'
+            change_request.tries  += 1
+          end
 
-        redraw_change_request_state(change_requests)
-        sleep(3)
-      end while(!change_requests.all?{|cr| cr.in_sync})
+          redraw_change_request_state(change_requests)
+          sleep(3)
+        end while(!change_requests.all?{|cr| cr.in_sync})
+      end
     end
 
     private
