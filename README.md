@@ -45,7 +45,7 @@ domains.each do |domain|
                             '10 aspmx3.googlemail.com'], 60)
 end
 
-# Overwrite on of the domains, to test new loadbalancer
+# Overwrite one of the domains, to test our new loadbalancer:
 sdns.entry('A', 'billetto.com', '89.81.189.143', 360)
 
 sdns.sprinkle!
