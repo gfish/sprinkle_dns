@@ -51,6 +51,21 @@ sdns.entry('A', 'billetto.com', '89.81.189.143', 360)
 sdns.sprinkle!
 ```
 
+## Support for ALIAS-records
+
+Route53 supports ALIAS-records to achieve CNAME-flattening, SprinkleDNS also supports that, here we point our root domain to an ELB:
+
+```ruby
+require 'sprinkle_dns'
+
+client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
+sdns   = SprinkleDNS::Client.new(client)
+
+sdns.alias('A', 'billetto.com', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com')
+
+sdns.sprinkle!
+```
+
 ## Amazon policy
 
 This gem uses the following permissions:
