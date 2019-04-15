@@ -1,4 +1,4 @@
-require 'aws-sdk'
+require 'aws-sdk-route53'
 require 'pp'
 
 module SprinkleDNS
