@@ -13,10 +13,15 @@ module SprinkleDNS
     def add_or_update_hosted_zone_entry(wanted_entry)
       raise if wanted_entry.hosted_zone != self.name
 
-      current_entry = @resource_record_sets.select{|hze| hze.type == wanted_entry.type && hze.name == wanted_entry.name}.first
+      current_entry = @resource_record_sets.select{|hze| hze.type == wanted_entry.type && hze.name == wanted_entry.name && hze.class == wanted_entry.class}.first
 
       if current_entry
-        current_entry.modify(wanted_entry.value, wanted_entry.ttl)
+        case current_entry
+        when HostedZoneEntry
+          current_entry.modify(wanted_entry.value, wanted_entry.ttl)
+        when AliasEntry
+          current_entry.modify(wanted_entry.hosted_zone_id, wanted_entry.dns_name)
+        end
         current_entry.mark_referenced!
       else
         wanted_entry.mark_new!
