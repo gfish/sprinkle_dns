@@ -222,6 +222,7 @@ module SprinkleDNS
           alias_target: {
             hosted_zone_id: entry.hosted_zone_id,
             dns_name: entry.dns_name,
+            evaluate_target_health: false,
           },
         }
       else raise "Unknown entry"
