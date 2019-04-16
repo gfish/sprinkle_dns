@@ -23,6 +23,18 @@ RSpec.describe SprinkleDNS::Client do
     expect(sdns.wanted_zones['es.kaspergrubbe.com.'].count).to eq 2
   end
 
+  it 'should support alias records' do
+    r53c = SprinkleDNS::Route53Client.new('1','2')
+    sdns = SprinkleDNS::Client.new(r53c)
+
+    sdns.entry('A', 'billetto.com',     '88.80.80.80', 60)
+    sdns.alias('A', 'www.billetto.com', 'Z215JYRZR1TBD5', 'dualstack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com')
+
+    expect(sdns.wanted_zones.count).to eq 1
+    expect(sdns.wanted_zones['billetto.com.']).to be_truthy
+    expect(sdns.wanted_zones['billetto.com.'].count).to eq 2
+  end
+
   context 'record validation' do
     it 'should only allow valid string records' do
       valid_records = ['SOA','A','TXT','NS','CNAME','MX','NAPTR','PTR','SRV','SPF','AAAA']
