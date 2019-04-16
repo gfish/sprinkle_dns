@@ -16,7 +16,7 @@ module SprinkleDNS
 
       @included_hosted_zones = []
       @hosted_zones          = []
-      @dry_run = dry_run
+      @dry_run               = dry_run
     end
 
     def set_hosted_zones(hosted_zone_names)
@@ -35,37 +35,7 @@ module SprinkleDNS
       change_requests = []
 
       hosted_zones.each do |hosted_zone|
-        change_batch_options = []
-
-        hosted_zone.entries_to_delete.each do |entry|
-          # Figure out a way to pass options, and then delete
-          puts "NOT DELETING #{entry}"
-          if true == false
-            change_batch_options << {
-              action: 'DELETE',
-              resource_record_set: {
-                name: entry.name,
-                type: entry.type,
-                ttl: entry.ttl,
-                resource_records: entry.value.map{|a| {value: a}},
-              },
-            }
-          end
-        end
-
-        hosted_zone.entries_to_update.each do |entry|
-          change_batch_options << {
-            action: 'UPSERT',
-            resource_record_set: entry_to_rrs(entry),
-          }
-        end
-
-        hosted_zone.entries_to_create.each do |entry|
-          change_batch_options << {
-            action: 'CREATE',
-            resource_record_set: entry_to_rrs(entry)
-          }
-        end
+        change_batch_options = hosted_zone.compile_change_batch
 
         if dry_run
           if change_batch_options.any?
@@ -147,7 +117,7 @@ module SprinkleDNS
               raise DuplicatedHostedZones, "Whooops, seems like you have the same hosted zone duplicated on your Route53 account!\nIt's the following: #{hz.name}"
             end
 
-            hosted_zone = HostedZone.new(hz.id, hz.name, hz.resource_record_set_count)
+            hosted_zone = HostedZone.new(hz.id, hz.name)
             hosted_zone.resource_record_sets = get_resource_record_set!(hosted_zone)
 
             hosted_zones << hosted_zone
@@ -204,29 +174,6 @@ module SprinkleDNS
       end
 
       existing_resource_record_sets
-    end
-
-    def entry_to_rrs(entry)
-      case entry
-      when HostedZoneEntry
-        {
-          name: entry.name,
-          type: entry.type,
-          ttl: entry.ttl,
-          resource_records: entry.value.map{|a| {value: a}},
-        }
-      when AliasEntry
-        {
-          name: entry.name,
-          type: entry.type,
-          alias_target: {
-            hosted_zone_id: entry.hosted_zone_id,
-            dns_name: entry.dns_name,
-            evaluate_target_health: false,
-          },
-        }
-      else raise "Unknown entry"
-      end
     end
   end
 end
