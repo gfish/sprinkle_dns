@@ -16,7 +16,7 @@ module SprinkleDNS
 
       @included_hosted_zones = []
       @hosted_zones          = []
-      @dry_run = dry_run
+      @dry_run               = dry_run
     end
 
     def set_hosted_zones(hosted_zone_names)
