@@ -1,5 +1,4 @@
 require 'aws-sdk-route53'
-require 'pp'
 
 module SprinkleDNS
   Route53ChangeRequest = Struct.new(:hosted_zone, :change_info_id, :tries, :in_sync)
@@ -54,36 +53,17 @@ module SprinkleDNS
         end
       end
 
-      redraw_change_request_state(change_requests, false)
       begin
-        redraw_change_request_state(change_requests)
-
         change_requests.reject{|cr| cr.in_sync}.each do |change_request|
           resp = @api_client.get_change({id: change_request.change_info_id})
           change_request.in_sync = resp.change_info.status == 'INSYNC'
           change_request.tries  += 1
         end
-
-        redraw_change_request_state(change_requests)
         sleep(3)
       end while(!change_requests.all?{|cr| cr.in_sync})
     end
 
     private
-
-    def redraw_change_request_state(change_requests, clear_lines = true)
-      lines = []
-
-      change_requests.each do |change_request|
-        dots   = '.' * change_request.tries
-        sync   = change_request.in_sync ? '✔' : '✘'
-        status = change_request.in_sync ? 'PROPAGATED' : 'PROPAGATING'
-        lines << "#{sync} #{status} #{change_request.hosted_zone.name}#{dots}"
-      end
-
-      clear = clear_lines ? ("\r" + ("\e[A\e[K") * change_requests.size) : ''
-      puts clear + lines.join("\n")
-    end
 
     def get_hosted_zones!
       hosted_zones = []
