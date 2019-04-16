@@ -147,7 +147,7 @@ module SprinkleDNS
               raise DuplicatedHostedZones, "Whooops, seems like you have the same hosted zone duplicated on your Route53 account!\nIt's the following: #{hz.name}"
             end
 
-            hosted_zone = HostedZone.new(hz.id, hz.name, hz.resource_record_set_count)
+            hosted_zone = HostedZone.new(hz.id, hz.name)
             hosted_zone.resource_record_sets = get_resource_record_set!(hosted_zone)
 
             hosted_zones << hosted_zone
