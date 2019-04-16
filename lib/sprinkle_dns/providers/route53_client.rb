@@ -206,27 +206,6 @@ module SprinkleDNS
       existing_resource_record_sets
     end
 
-    def entry_to_rrs(entry)
-      case entry
-      when HostedZoneEntry
-        {
-          name: entry.name,
-          type: entry.type,
-          ttl: entry.ttl,
-          resource_records: entry.value.map{|a| {value: a}},
-        }
-      when AliasEntry
-        {
-          name: entry.name,
-          type: entry.type,
-          alias_target: {
-            hosted_zone_id: entry.hosted_zone_id,
-            dns_name: entry.dns_name,
-            evaluate_target_health: false,
-          },
-        }
-      else raise "Unknown entry"
-      end
     end
   end
 end
