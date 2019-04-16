@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe SprinkleDNS::Client do
-  it 'as' do
+  it 'should parse and setup' do
     r53c = SprinkleDNS::Route53Client.new('1','2')
     sdns = SprinkleDNS::Client.new(r53c)
 
@@ -11,10 +11,16 @@ RSpec.describe SprinkleDNS::Client do
     sdns.entry('MX',    'main.kaspergrubbe.com',        ['10 mailserver.example.com'], 300)
     sdns.entry('A',     'streamy.kaspergrubbe.com.',    '198.211.96.200', 60)
     sdns.entry('A',     'blog.kaspergrubbe.com',        '198.211.96.200', 60)
+
     sdns.entry('CNAME', 'www.es.kaspergrubbe.com',      "#{Time.now.to_i}.example.com.", 42, 'es.kaspergrubbe.com')
     sdns.entry('CNAME', 'staging.es.kaspergrubbe.com.', "#{Time.now.to_i}.example.com.", 42, 'es.kaspergrubbe.com.')
 
-    # TODO verify the entries
+    expect(sdns.wanted_zones.count).to eq 2
+    expect(sdns.wanted_zones['kaspergrubbe.com.']).to be_truthy
+    expect(sdns.wanted_zones['es.kaspergrubbe.com.']).to be_truthy
+
+    expect(sdns.wanted_zones['kaspergrubbe.com.'].count).to eq 6
+    expect(sdns.wanted_zones['es.kaspergrubbe.com.'].count).to eq 2
   end
 
   context 'record validation' do

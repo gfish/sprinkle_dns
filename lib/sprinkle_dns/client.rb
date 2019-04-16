@@ -8,6 +8,7 @@ require 'sprinkle_dns/core_ext/zonify'
 
 module SprinkleDNS
   class Client
+    attr_reader :wanted_zones
 
     def initialize(dns_provider)
       @dns_provider = dns_provider
