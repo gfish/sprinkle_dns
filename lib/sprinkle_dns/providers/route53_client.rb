@@ -175,7 +175,5 @@ module SprinkleDNS
 
       existing_resource_record_sets
     end
-
-    end
   end
 end
