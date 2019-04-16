@@ -8,7 +8,7 @@ module SprinkleDNS
     attr_reader :hosted_zones, :dry_run
 
     def initialize(aws_access_key_id, aws_secret_access_key, dry_run: false)
-      @r53client = Aws::Route53::Client.new(
+      @api_client = Aws::Route53::Client.new(
         access_key_id: aws_access_key_id,
         secret_access_key: aws_secret_access_key,
         region: 'us-east-1',
@@ -45,7 +45,7 @@ module SprinkleDNS
         else
           if change_batch_options.any?
             begin
-              change_request = @r53client.change_resource_record_sets({
+              change_request = @api_client.change_resource_record_sets({
                 hosted_zone_id: hosted_zone.hosted_zone_id,
                 change_batch: {
                   changes: change_batch_options,
@@ -68,7 +68,7 @@ module SprinkleDNS
           redraw_change_request_state(change_requests)
 
           change_requests.reject{|cr| cr.in_sync}.each do |change_request|
-            resp = @r53client.get_change({id: change_request.change_info_id})
+            resp = @api_client.get_change({id: change_request.change_info_id})
             change_request.in_sync = resp.change_info.status == 'INSYNC'
             change_request.tries  += 1
           end
@@ -102,7 +102,7 @@ module SprinkleDNS
 
       while(more_pages)
         begin
-          data = @r53client.list_hosted_zones({:max_items => nil, :marker => next_marker})
+          data = @api_client.list_hosted_zones({:max_items => nil, :marker => next_marker})
         rescue Aws::Route53::Errors::AccessDenied
           # TODO extract this to custom exceptions
           raise
@@ -145,7 +145,7 @@ module SprinkleDNS
       existing_resource_record_sets = []
 
       while(more_pages)
-        data = @r53client.list_resource_record_sets(
+        data = @api_client.list_resource_record_sets(
           hosted_zone_id: hosted_zone.hosted_zone_id,
           max_items: nil,
           start_record_name: next_record_name,
