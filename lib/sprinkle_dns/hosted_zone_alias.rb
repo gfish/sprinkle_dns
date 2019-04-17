@@ -1,5 +1,5 @@
 module SprinkleDNS
-  class AliasEntry
+  class HostedZoneAlias
     attr_accessor :type, :name, :hosted_zone_id, :dns_name, :hosted_zone
     attr_accessor :changed_type, :changed_name, :changed_hosted_zone_id, :changed_dns_name
     attr_accessor :referenced

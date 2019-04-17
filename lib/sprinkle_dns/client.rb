@@ -2,7 +2,7 @@ require 'sprinkle_dns/exceptions'
 require 'sprinkle_dns/hosted_zone'
 require 'sprinkle_dns/hosted_zone_domain'
 require 'sprinkle_dns/hosted_zone_entry'
-require 'sprinkle_dns/alias_entry'
+require 'sprinkle_dns/hosted_zone_alias'
 require 'sprinkle_dns/core_ext/array_wrap'
 require 'sprinkle_dns/core_ext/zonify'
 
@@ -32,7 +32,7 @@ module SprinkleDNS
       hosted_zone                  = zonify!(hosted_zone)
       @wanted_zones[hosted_zone] ||= []
 
-      @wanted_zones[hosted_zone] << AliasEntry.new(type, zonify!(name), hosted_zone_id, dns_name, zonify!(hosted_zone))
+      @wanted_zones[hosted_zone] << HostedZoneAlias.new(type, zonify!(name), hosted_zone_id, dns_name, zonify!(hosted_zone))
     end
 
     def sprinkle!

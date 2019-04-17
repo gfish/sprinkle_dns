@@ -18,7 +18,7 @@ module SprinkleDNS
         case existing_entry
         when HostedZoneEntry
           existing_entry.modify(wanted_entry.value, wanted_entry.ttl)
-        when AliasEntry
+        when HostedZoneAlias
           existing_entry.modify(wanted_entry.hosted_zone_id, wanted_entry.dns_name)
         end
         existing_entry.mark_referenced!
@@ -92,7 +92,7 @@ module SprinkleDNS
           ttl: entry.ttl,
           resource_records: entry.value.map{|a| {value: a}},
         }
-      when AliasEntry
+      when HostedZoneAlias
         {
           name: entry.name,
           type: entry.type,

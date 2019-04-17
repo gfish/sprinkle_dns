@@ -68,6 +68,7 @@ module SprinkleDNS
 
     def to_s
       [
+        "Entry",
         sprintf("%4s", type),
         sprintf("%30s", name),
         sprintf("%50s", value.join(", ")),

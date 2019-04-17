@@ -136,7 +136,7 @@ module SprinkleDNS
 
           next if ignored_record_types.include?(rrs.type) && rrs_name == hosted_zone.name
           if rrs.alias_target
-            existing_resource_record_sets << AliasEntry.new(rrs.type, rrs_name, rrs.alias_target.hosted_zone_id, rrs.alias_target.dns_name, hosted_zone.name)
+            existing_resource_record_sets << HostedZoneAlias.new(rrs.type, rrs_name, rrs.alias_target.hosted_zone_id, rrs.alias_target.dns_name, hosted_zone.name)
           else
             existing_resource_record_sets << HostedZoneEntry.new(rrs.type, rrs_name, rrs.resource_records.map(&:value), rrs.ttl, hosted_zone.name)
           end
