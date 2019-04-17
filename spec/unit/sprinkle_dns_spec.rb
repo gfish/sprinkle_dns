@@ -19,8 +19,8 @@ RSpec.describe SprinkleDNS::Client do
     expect(sdns.wanted_zones['kaspergrubbe.com.']).to be_truthy
     expect(sdns.wanted_zones['es.kaspergrubbe.com.']).to be_truthy
 
-    expect(sdns.wanted_zones['kaspergrubbe.com.'].count).to eq 6
-    expect(sdns.wanted_zones['es.kaspergrubbe.com.'].count).to eq 2
+    expect(sdns.wanted_zones['kaspergrubbe.com.'].resource_record_sets.count).to eq 6
+    expect(sdns.wanted_zones['es.kaspergrubbe.com.'].resource_record_sets.count).to eq 2
   end
 
   it 'should support alias records' do
@@ -32,7 +32,7 @@ RSpec.describe SprinkleDNS::Client do
 
     expect(sdns.wanted_zones.count).to eq 1
     expect(sdns.wanted_zones['billetto.com.']).to be_truthy
-    expect(sdns.wanted_zones['billetto.com.'].count).to eq 2
+    expect(sdns.wanted_zones['billetto.com.'].resource_record_sets.count).to eq 2
   end
 
   it 'should allow overwrites' do

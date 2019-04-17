@@ -3,8 +3,7 @@ module SprinkleDNS
     attr_reader :hosted_zone_id, :name
     attr_accessor :resource_record_sets
 
-    def initialize(hosted_zone_id, name)
-      @hosted_zone_id       = hosted_zone_id
+    def initialize(name)
       @name                 = name
       @resource_record_sets = []
     end

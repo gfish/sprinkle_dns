@@ -16,23 +16,21 @@ module SprinkleDNS
     end
 
     def entry(type, name, value, ttl = 3600, hosted_zone = nil)
-      hosted_zone                ||= HostedZoneDomain::parse(name)
-      hosted_zone                  = zonify!(hosted_zone)
-      @wanted_zones[hosted_zone] ||= []
+      hosted_zone = add_or_create_hosted_zone(name, hosted_zone)
+      name        = zonify!(name)
 
       if ['CNAME', 'MX'].include?(type)
         value = Array.wrap(value)
         value.map!{|v| zonify!(v)}
       end
-      @wanted_zones[hosted_zone] << HostedZoneEntry.new(type, zonify!(name), Array.wrap(value), ttl, zonify!(hosted_zone))
+      hosted_zone.add_or_update_hosted_zone_entry HostedZoneEntry.new(type, name, Array.wrap(value), ttl, hosted_zone.name)
     end
 
     def alias(type, name, hosted_zone_id, dns_name, hosted_zone = nil)
-      hosted_zone                ||= HostedZoneDomain::parse(name)
-      hosted_zone                  = zonify!(hosted_zone)
-      @wanted_zones[hosted_zone] ||= []
+      hosted_zone = add_or_create_hosted_zone(name, hosted_zone)
+      name        = zonify!(name)
 
-      @wanted_zones[hosted_zone] << HostedZoneAlias.new(type, zonify!(name), hosted_zone_id, dns_name, zonify!(hosted_zone))
+      hosted_zone.add_or_update_hosted_zone_entry HostedZoneAlias.new(type, name, hosted_zone_id, dns_name, hosted_zone.name)
     end
 
     def sprinkle!
@@ -45,6 +43,16 @@ module SprinkleDNS
       end
 
       @dns_provider.sync!
+    end
+
+    private
+
+    def add_or_create_hosted_zone(record_name, hosted_zone_name)
+      hosted_zone_name ||= HostedZoneDomain::parse(record_name)
+      hosted_zone_name   = zonify!(hosted_zone_name)
+
+      @wanted_zones[hosted_zone_name] ||= HostedZone.new(hosted_zone_name)
+      @wanted_zones[hosted_zone_name]
     end
   end
 
