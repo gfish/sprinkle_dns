@@ -16,7 +16,7 @@ module SprinkleDNS
     end
 
     def entry(type, name, value, ttl = 3600, hosted_zone = nil)
-      hosted_zone = add_or_create_hosted_zone(name, hosted_zone)
+      hosted_zone = find_or_init_hosted_zone(name, hosted_zone)
       name        = zonify!(name)
 
       if ['CNAME', 'MX'].include?(type)
@@ -27,7 +27,7 @@ module SprinkleDNS
     end
 
     def alias(type, name, hosted_zone_id, dns_name, hosted_zone = nil)
-      hosted_zone = add_or_create_hosted_zone(name, hosted_zone)
+      hosted_zone = find_or_init_hosted_zone(name, hosted_zone)
       name        = zonify!(name)
 
       hosted_zone.add_or_update_hosted_zone_entry HostedZoneAlias.new(type, name, hosted_zone_id, dns_name, hosted_zone.name)
@@ -47,7 +47,7 @@ module SprinkleDNS
 
     private
 
-    def add_or_create_hosted_zone(record_name, hosted_zone_name)
+    def find_or_init_hosted_zone(record_name, hosted_zone_name)
       hosted_zone_name ||= HostedZoneDomain::parse(record_name)
       hosted_zone_name   = zonify!(hosted_zone_name)
 
