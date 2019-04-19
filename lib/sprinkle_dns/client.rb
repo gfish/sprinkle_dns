@@ -12,7 +12,7 @@ module SprinkleDNS
 
     def initialize(dns_provider)
       @dns_provider = dns_provider
-      @wanted_zones = {}
+      @wanted_zones = []
     end
 
     def entry(type, name, value, ttl = 3600, hosted_zone = nil)
@@ -51,8 +51,13 @@ module SprinkleDNS
       hosted_zone_name ||= HostedZoneDomain::parse(record_name)
       hosted_zone_name   = zonify!(hosted_zone_name)
 
-      @wanted_zones[hosted_zone_name] ||= HostedZone.new(hosted_zone_name)
-      @wanted_zones[hosted_zone_name]
+      wanted_zone = @wanted_zones.select{|zone| zone.name == hosted_zone_name}.first
+      if wanted_zone.nil?
+        wanted_zone = HostedZone.new(hosted_zone_name)
+        @wanted_zones << wanted_zone
+      end
+
+      wanted_zone
     end
   end
 
