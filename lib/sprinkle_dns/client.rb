@@ -8,11 +8,11 @@ require 'sprinkle_dns/core_ext/zonify'
 
 module SprinkleDNS
   class Client
-    attr_reader :wanted_zones
+    attr_reader :wanted_hosted_zones
 
     def initialize(dns_provider)
-      @dns_provider = dns_provider
-      @wanted_zones = []
+      @dns_provider   = dns_provider
+      @wanted_hosted_zones   = []
     end
 
     def entry(type, name, value, ttl = 3600, hosted_zone = nil)
@@ -51,13 +51,13 @@ module SprinkleDNS
       hosted_zone_name ||= HostedZoneDomain::parse(record_name)
       hosted_zone_name   = zonify!(hosted_zone_name)
 
-      wanted_zone = @wanted_zones.select{|zone| zone.name == hosted_zone_name}.first
-      if wanted_zone.nil?
-        wanted_zone = HostedZone.new(hosted_zone_name)
-        @wanted_zones << wanted_zone
+      wanted_hosted_zone = @wanted_hosted_zones.select{|zone| zone.name == hosted_zone_name}.first
+      if wanted_hosted_zone.nil?
+        wanted_hosted_zone = HostedZone.new(hosted_zone_name)
+        @wanted_hosted_zones << wanted_hosted_zone
       end
 
-      wanted_zone
+      wanted_hosted_zone
     end
   end
 
