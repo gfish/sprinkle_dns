@@ -13,20 +13,11 @@ module SprinkleDNS
         region: 'us-east-1',
       )
 
-      @included_hosted_zones = []
-      @hosted_zones          = []
+      @wanted_hosted_zones = []
     end
 
-    def set_hosted_zones(hosted_zone_names)
-      @included_hosted_zones = Array.wrap(hosted_zone_names).map{|hzn| zonify!(hzn)}
-      @hosted_zones          = []
-
-      get_hosted_zones!
-    end
-
-    def add_or_update_hosted_zone_entry(hosted_zone_entry)
-      hosted_zone = @hosted_zones.select{|hz| hz.name == hosted_zone_entry.hosted_zone}.first
-      hosted_zone.add_or_update_hosted_zone_entry(hosted_zone_entry)
+    def set_wanted_hosted_zones(wanted_hosted_zones)
+      @wanted_hosted_zones = wanted_hosted_zones
     end
 
     def sync!

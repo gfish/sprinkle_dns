@@ -13,6 +13,7 @@ module SprinkleDNS
     def initialize(dns_provider)
       @dns_provider   = dns_provider
       @wanted_hosted_zones   = []
+      @existing_zones = []
     end
 
     def entry(type, name, value, ttl = 3600, hosted_zone = nil)
@@ -34,13 +35,11 @@ module SprinkleDNS
     end
 
     def sprinkle!
-      @dns_provider.set_hosted_zones(@wanted_zones.keys)
+      puts @wanted_hosted_zones.map(&:name)
 
-      @wanted_zones.each do |hosted_zone_name, hosted_zone_entries|
-        hosted_zone_entries.each do |wanted_entry|
-          @dns_provider.add_or_update_hosted_zone_entry(wanted_entry)
-        end
-      end
+      @dns_provider.set_wanted_hosted_zones(@wanted_hosted_zones)
+
+      @existing_hosted_zones = @dns_provider.get_hosted_zones(@wanted_hosted_zones)
 
       @dns_provider.sync!
     end
