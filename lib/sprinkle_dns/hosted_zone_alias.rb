@@ -51,12 +51,6 @@ module SprinkleDNS
       self.changed?
     end
 
-    def ==(other)
-      type  == other.type &&
-        name  == other.name &&
-        hosted_zone_id == other.hosted_zone_id &&
-        dns_name == other.dns_name
-    end
 
     def to_s
       [
