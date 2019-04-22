@@ -14,18 +14,17 @@ module SprinkleDNS
       existing_entry = @resource_record_sets.select{|hze| hze.type == wanted_entry.type && hze.name == wanted_entry.name}.first
 
       if existing_entry
-        case existing_entry
-        when HostedZoneEntry
-          existing_entry.modify(wanted_entry.value, wanted_entry.ttl)
-        when HostedZoneAlias
-          existing_entry.modify(wanted_entry.hosted_zone_id, wanted_entry.dns_name)
+        if existing_entry.persisted?
+          existing_entry.new_value(wanted_entry)
+        else
+          @resource_record_sets[@resource_record_sets.index(existing_entry)] = wanted_entry
         end
-        existing_entry.mark_referenced!
       else
         wanted_entry.mark_new!
-        wanted_entry.mark_referenced!
         @resource_record_sets << wanted_entry
       end
+
+      wanted_entry.mark_referenced!
     end
 
     def entries_to_create
