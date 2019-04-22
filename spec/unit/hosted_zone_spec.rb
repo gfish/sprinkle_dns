@@ -2,9 +2,7 @@ require 'spec_helper'
 
 RSpec.describe SprinkleDNS::HostedZone do
   it 'should correctly calculate a compile_change_batch' do
-    pending
-
-    hz = SprinkleDNS::HostedZone.new('/hostedzone/Z3EATJAGJWXQE8', 'test.billetto.com.')
+    hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
 
     hze01 = SprinkleDNS::HostedZoneEntry.new('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
     hze02 = SprinkleDNS::HostedZoneEntry.new('A', 'foo.test.billetto.com.', '80.80.23.23', 70, 'test.billetto.com.')
