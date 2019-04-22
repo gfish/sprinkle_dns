@@ -2,7 +2,7 @@ module SprinkleDNS
   class HostedZoneEntry
     attr_accessor :type, :name, :value, :ttl, :hosted_zone
     attr_accessor :changed_type, :changed_name, :changed_value, :changed_ttl
-    attr_accessor :referenced
+    attr_accessor :referenced, :persisted
 
     def initialize(type, name, value, ttl, hosted_zone)
       @type           = type
@@ -23,6 +23,7 @@ module SprinkleDNS
       @changed_value = false
       @changed_ttl   = false
       @referenced    = false
+      @persisted     = false
 
       if ['CNAME', 'MX'].include?(type)
         @value = @value.map!{|v| zonify!(v)}
@@ -35,6 +36,14 @@ module SprinkleDNS
 
     def new?
       [@changed_type, @changed_name, @changed_value, @changed_ttl].all?
+    end
+
+    def persisted!
+      @persisted = true
+    end
+
+    def persisted?
+      @persisted
     end
 
     def changed?

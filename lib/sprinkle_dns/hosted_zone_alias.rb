@@ -1,8 +1,8 @@
 module SprinkleDNS
   class HostedZoneAlias
-    attr_accessor :referenced
     attr_accessor :type, :name, :hosted_zone, :target_hosted_zone_id, :target_dns_name
     attr_accessor :changed_type, :changed_name, :changed_target_hosted_zone_id, :changed_target_dns_name
+    attr_accessor :referenced, :persisted
 
     def initialize(type, name, target_hosted_zone_id, target_dns_name, hosted_zone)
       @type           = type
@@ -19,6 +19,7 @@ module SprinkleDNS
 
       raise if [@type, @name, @target_hosted_zone_id, @target_dns_name, @hosted_zone].any?(&:nil?)
       @referenced = false
+      @persisted  = false
     end
 
     def mark_new!
@@ -27,6 +28,14 @@ module SprinkleDNS
 
     def new?
       [@changed_type, @changed_name, @changed_target_hosted_zone_id, @changed_target_dns_name].all?
+    end
+
+    def persisted!
+      @persisted = true
+    end
+
+    def persisted?
+      @persisted
     end
 
     def changed?
