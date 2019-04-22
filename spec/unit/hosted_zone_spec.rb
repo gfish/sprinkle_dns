@@ -19,18 +19,79 @@ RSpec.describe SprinkleDNS::HostedZone do
     ])
   end
 
-  it 'should correctly overwrite an entry' do
-    pending
+  context "overwrite an entry" do
+    it 'should correctly replace an entry if not persisted' do
+      hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
 
-    hz = SprinkleDNS::HostedZone.new('/hostedzone/Z3EATJAGJWXQE8', 'test.billetto.com.')
+      hz_entry = SprinkleDNS::HostedZoneEntry.new('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
+      expect(hz_entry.persisted?).to eq false
+      hz_alias = SprinkleDNS::HostedZoneAlias.new('A', 'www.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+      expect(hz_alias.persisted?).to eq false
 
-    hze = SprinkleDNS::HostedZoneEntry.new('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
-    hza = SprinkleDNS::HostedZoneAlias.new('A', 'www.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+      hz.add_or_update_hosted_zone_entry(hz_entry)
+      expect(hz.resource_record_sets).to include(hz_entry)
+      expect(hz.resource_record_sets.size).to eq 1
 
-    [hze, hza].each do |it|
-      hz.add_or_update_hosted_zone_entry(it)
+      hz.add_or_update_hosted_zone_entry(hz_alias)
+      expect(hz.resource_record_sets).to include(hz_alias)
+      expect(hz.resource_record_sets).not_to include(hz_entry)
+      expect(hz.resource_record_sets.size).to eq 1
     end
 
-    require 'pry'; binding.pry
+    it 'should use #new_value if persisted' do
+      hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
+
+      hz_entry = SprinkleDNS::HostedZoneEntry.new('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
+      hz_alias = SprinkleDNS::HostedZoneAlias.new('A', 'www.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+
+      hz_entry.persisted!
+
+      hz.add_or_update_hosted_zone_entry(hz_entry)
+      expect(hz.resource_record_sets).to include(hz_entry)
+      expect(hz.resource_record_sets.size).to eq 1
+
+      hz.add_or_update_hosted_zone_entry(hz_alias)
+      expect(hz.resource_record_sets).not_to include(hz_alias)
+      expect(hz.resource_record_sets.size).to eq 1
+      expect(hz.resource_record_sets.first.new_entry).to eq hz_alias
+    end
+  end
+
+  context "overwrite an alias" do
+    it 'should correctly replace an alias if not persisted' do
+      hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
+
+      hz_alias = SprinkleDNS::HostedZoneAlias.new('A', 'www.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+      expect(hz_alias.persisted?).to eq false
+      hz_entry = SprinkleDNS::HostedZoneEntry.new('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
+      expect(hz_entry.persisted?).to eq false
+
+      hz.add_or_update_hosted_zone_entry(hz_alias)
+      expect(hz.resource_record_sets).to include(hz_alias)
+      expect(hz.resource_record_sets.size).to eq 1
+
+      hz.add_or_update_hosted_zone_entry(hz_entry)
+      expect(hz.resource_record_sets).to include(hz_entry)
+      expect(hz.resource_record_sets).not_to include(hz_alias)
+      expect(hz.resource_record_sets.size).to eq 1
+    end
+
+    it 'should use #new_value if persisted' do
+      hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
+
+      hz_entry = SprinkleDNS::HostedZoneEntry.new('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
+      hz_alias = SprinkleDNS::HostedZoneAlias.new('A', 'www.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+
+      hz_entry.persisted!
+
+      hz.add_or_update_hosted_zone_entry(hz_entry)
+      expect(hz.resource_record_sets).to include(hz_entry)
+      expect(hz.resource_record_sets.size).to eq 1
+
+      hz.add_or_update_hosted_zone_entry(hz_alias)
+      expect(hz.resource_record_sets).not_to include(hz_alias)
+      expect(hz.resource_record_sets.size).to eq 1
+      expect(hz.resource_record_sets.first.new_entry).to eq hz_alias
+    end
   end
 end
