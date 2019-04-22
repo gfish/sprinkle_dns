@@ -1,6 +1,6 @@
 module SprinkleDNS
   class HostedZone
-    attr_reader :hosted_zone_id, :name
+    attr_reader :name
     attr_accessor :resource_record_sets
 
     def initialize(name)
