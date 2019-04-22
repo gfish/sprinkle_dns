@@ -3,6 +3,7 @@ module SprinkleDNS
     attr_accessor :type, :name, :value, :ttl, :hosted_zone
     attr_accessor :changed_type, :changed_name, :changed_value, :changed_ttl
     attr_accessor :referenced, :persisted
+    attr_accessor :new_entry
 
     def initialize(type, name, value, ttl, hosted_zone)
       @type           = type
@@ -12,6 +13,8 @@ module SprinkleDNS
       @ttl            = ttl
       @original_ttl   = ttl
       @hosted_zone    = hosted_zone
+
+      @new_entry      = nil
 
       raise if [@type, @name, @value, @ttl, @hosted_zone].any?(&:nil?)
       raise SprinkleDNS::RecordNotAString.new('Record-type should be a string') unless @type.is_a?(String)
@@ -58,16 +61,19 @@ module SprinkleDNS
       @referenced
     end
 
-    def modify(value, ttl)
-      @value = value
-      @ttl   = ttl
+    def new_value(new_entry)
+      @new_entry = new_entry
 
-      @changed_value = true if @original_value != @value
-      @changed_ttl   = true if @original_ttl   != @ttl
+      if new_entry.class == SprinkleDNS::HostedZoneEntry
+        @changed_value = true if @value != new_entry.value
+        @changed_ttl   = true if @ttl   != new_entry.ttl
+      else
+        @changed_value = true
+        @changed_ttl   = true
+      end
 
       self.changed?
     end
-
 
     def to_s
       [

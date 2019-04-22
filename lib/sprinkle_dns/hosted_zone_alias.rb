@@ -3,6 +3,7 @@ module SprinkleDNS
     attr_accessor :type, :name, :hosted_zone, :target_hosted_zone_id, :target_dns_name
     attr_accessor :changed_type, :changed_name, :changed_target_hosted_zone_id, :changed_target_dns_name
     attr_accessor :referenced, :persisted
+    attr_accessor :new_entry
 
     def initialize(type, name, target_hosted_zone_id, target_dns_name, hosted_zone)
       @type           = type
@@ -16,6 +17,8 @@ module SprinkleDNS
       @target_dns_name          = target_dns_name
       @changed_target_dns_name  = false
       @original_target_dns_name = target_dns_name.clone
+
+      @new_entry = nil
 
       raise if [@type, @name, @target_hosted_zone_id, @target_dns_name, @hosted_zone].any?(&:nil?)
       @referenced = false
@@ -50,16 +53,19 @@ module SprinkleDNS
       @referenced
     end
 
-    def modify(hosted_zone_id, dns_name)
-      @hosted_zone_id = hosted_zone_id
-      @dns_name = dns_name
+    def new_value(new_entry)
+      @new_entry = new_entry
 
-      @changed_hosted_zone_id = true if @original_hosted_zone_id != @hosted_zone_id
-      @changed_dns_name = true if @original_dns_name != @dns_name
+      if new_entry.class == SprinkleDNS::HostedZoneAlias
+        @changed_target_hosted_zone_id = true if @target_hosted_zone_id != new_entry.target_hosted_zone_id
+        @changed_target_dns_name       = true if @target_dns_name       != new_entry.target_dns_name
+      else
+        @changed_target_hosted_zone_id = true
+        @changed_target_dns_name       = true
+      end
 
       self.changed?
     end
-
 
     def to_s
       [
