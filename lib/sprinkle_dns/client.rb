@@ -37,7 +37,24 @@ module SprinkleDNS
     def sprinkle!
       @existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
 
+      # Make sure we have the same amount of zones
+      unless @existing_hosted_zones.map(&:name) - @wanted_hosted_zones.map(&:name) == []
+        error_message = []
+        error_message << "We found #{@existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones} was described, exiting!"
+        error_message << ""
 
+        error_message << "Existing:"
+        @existing_hosted_zones.map(&:name).sort.each do |ehz|
+          error_message << "- #{ehz}"
+        end
+
+        error_message << "Described:"
+        @wanted_hosted_zones.map(&:name).sort.each do |whz|
+          error_message << "- #{whz}"
+        end
+
+        raise error_message.join("\n")
+      end
 
       @existing_hosted_zones.each do |existing_hosted_zone|
         wanted_hosted_zone = @wanted_hosted_zones.select{|whz| whz.name == existing_hosted_zone.name}.first
