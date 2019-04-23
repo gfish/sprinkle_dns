@@ -78,6 +78,12 @@ module SprinkleDNS
     private
 
     def entry_to_rrs(entry)
+      entry = if entry.new_entry
+        entry.new_entry
+      else
+        entry
+      end
+
       case entry
       when HostedZoneEntry
         {
