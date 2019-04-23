@@ -4,7 +4,7 @@ RSpec.describe SprinkleDNS::Route42Client do
   context "#fetch" do
     it "should return empty list when given empty array" do
       hz = SprinkleDNS::HostedZone.new('billetto.se.')
-      en = entry("A", "beta.billetto.se", '88.80.188.143', 60, hz.name)
+      en = sprinkle_entry("A", "beta.billetto.se", '88.80.188.143', 60, hz.name)
       hz.add_or_update_hosted_zone_entry(en)
       c42 = SprinkleDNS::Route42Client.new([en])
 
@@ -14,7 +14,7 @@ RSpec.describe SprinkleDNS::Route42Client do
 
     it "should initialize correctly" do
       hz = SprinkleDNS::HostedZone.new('billetto.se.')
-      en = entry("A", "beta.billetto.se", '88.80.188.143', 60, hz.name)
+      en = sprinkle_entry("A", "beta.billetto.se", '88.80.188.143', 60, hz.name)
       hz.add_or_update_hosted_zone_entry(en)
       c42 = SprinkleDNS::Route42Client.new([hz])
 
@@ -28,9 +28,9 @@ RSpec.describe SprinkleDNS::Route42Client do
 
       hzdk = SprinkleDNS::HostedZone.new('billetto.dk.')
 
-      e1 = entry("A", "beta.billetto.dk.", '88.80.188.143', 60, hzdk.name)
-      e2 = entry("A", "alph.billetto.dk.", '88.80.188.144', 60, hzdk.name)
-      e3 = entry("A", "lolp.billetto.dk.", '88.80.188.145', 60, hzdk.name)
+      e1 = sprinkle_entry("A", "beta.billetto.dk.", '88.80.188.143', 60, hzdk.name)
+      e2 = sprinkle_entry("A", "alph.billetto.dk.", '88.80.188.144', 60, hzdk.name)
+      e3 = sprinkle_entry("A", "lolp.billetto.dk.", '88.80.188.145', 60, hzdk.name)
 
       [e1, e2, e3].each do |entry|
         hzdk.add_or_update_hosted_zone_entry(entry)
@@ -40,9 +40,9 @@ RSpec.describe SprinkleDNS::Route42Client do
 
       hzse = SprinkleDNS::HostedZone.new('billetto.se.')
 
-      e4 = entry("A", "beta.billetto.se", '88.80.188.143', 60, hzse.name)
-      e5 = entry("A", "alph.billetto.se", '88.80.188.144', 60, hzse.name)
-      e6 = entry("A", "lolp.billetto.se", '88.80.188.145', 60, hzse.name)
+      e4 = sprinkle_entry("A", "beta.billetto.se", '88.80.188.143', 60, hzse.name)
+      e5 = sprinkle_entry("A", "alph.billetto.se", '88.80.188.144', 60, hzse.name)
+      e6 = sprinkle_entry("A", "lolp.billetto.se", '88.80.188.145', 60, hzse.name)
 
       [e4, e5, e6].each do |entry|
         hzse.add_or_update_hosted_zone_entry(entry)
