@@ -53,12 +53,7 @@ module SprinkleDNS
         if true == false
           change_batch_options << {
             action: 'DELETE',
-            resource_record_set: {
-              name: entry.name,
-              type: entry.type,
-              ttl: entry.ttl,
-              resource_records: entry.value.map{|a| {value: a}},
-            },
+            resource_record_set: entry_to_rrs(entry),
           }
         end
       end
