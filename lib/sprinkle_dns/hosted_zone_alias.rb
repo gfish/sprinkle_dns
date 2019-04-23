@@ -16,6 +16,8 @@ module SprinkleDNS
 
       raise if [@type, @name, @target_hosted_zone_id, @target_dns_name, @hosted_zone].any?(&:nil?)
 
+      @changed_type = false
+      @changed_name = false
       @changed_target_hosted_zone_id = false
       @changed_target_dns_name = false
       @referenced = false
