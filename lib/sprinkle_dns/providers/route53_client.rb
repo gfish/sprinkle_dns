@@ -12,6 +12,7 @@ module SprinkleDNS
         secret_access_key: aws_secret_access_key,
         region: 'us-east-1',
       )
+      @hosted_zone_to_api_mapping = {}
     end
 
     def fetch_hosted_zones(filter: [])
@@ -43,6 +44,7 @@ module SprinkleDNS
 
             hosted_zone = HostedZone.new(hosted_zone_data.name)
             hosted_zone.resource_record_sets = get_resource_record_set!(hosted_zone, hosted_zone_data.id)
+            @hosted_zone_to_api_mapping[hosted_zone.name] = hosted_zone_data.id
 
             hosted_zones << hosted_zone
           end
