@@ -54,14 +54,16 @@ module SprinkleDNS
     end
 
     def new_value(new_entry)
-      @new_entry = new_entry
-
       if new_entry.class == SprinkleDNS::HostedZoneAlias
         @changed_target_hosted_zone_id = true if @target_hosted_zone_id != new_entry.target_hosted_zone_id
         @changed_target_dns_name       = true if @target_dns_name       != new_entry.target_dns_name
       else
         @changed_target_hosted_zone_id = true
         @changed_target_dns_name       = true
+      end
+
+      if @changed_target_hosted_zone_id || @changed_target_dns_name
+        @new_entry = new_entry
       end
 
       self.changed?

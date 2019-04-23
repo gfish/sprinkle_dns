@@ -62,14 +62,16 @@ module SprinkleDNS
     end
 
     def new_value(new_entry)
-      @new_entry = new_entry
-
       if new_entry.class == SprinkleDNS::HostedZoneEntry
         @changed_value = true if @value != new_entry.value
         @changed_ttl   = true if @ttl   != new_entry.ttl
       else
         @changed_value = true
         @changed_ttl   = true
+      end
+
+      if @changed_value || @changed_ttl
+        @new_entry = new_entry
       end
 
       self.changed?
