@@ -1,22 +1,161 @@
 require 'spec_helper'
 
 RSpec.describe SprinkleDNS::HostedZone do
-  it 'should correctly calculate a compile_change_batch' do
-    hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
+  context "compile_change_batch" do
+    it 'should correctly calculate a compile_change_batch' do
+      hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
 
-    hze01 = sprinkle_entry('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
-    hze02 = sprinkle_entry('A', 'foo.test.billetto.com.', '80.80.23.23', 70, 'test.billetto.com.')
-    hze03 = sprinkle_entry('A', 'bar.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
+      hze01 = sprinkle_entry('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
+      hze02 = sprinkle_entry('A', 'foo.test.billetto.com.', '80.80.23.23', 70, 'test.billetto.com.')
+      hze03 = sprinkle_entry('A', 'bar.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
 
-    [hze01, hze02, hze03].each do |hze|
-      hz.add_or_update_hosted_zone_entry(hze)
+      [hze01, hze02, hze03].each do |hze|
+        hz.add_or_update_hosted_zone_entry(hze)
+      end
+
+      expect(hz.compile_change_batch).to eq([
+        {:action=>"CREATE", :resource_record_set=>{:name=>"www.test.billetto.com.", :type=>"A", :ttl=>60, :resource_records=>[{:value=>"80.80.22.22"}]}},
+        {:action=>"CREATE", :resource_record_set=>{:name=>"foo.test.billetto.com.", :type=>"A", :ttl=>70, :resource_records=>[{:value=>"80.80.23.23"}]}},
+        {:action=>"CREATE", :resource_record_set=>{:name=>"bar.test.billetto.com.", :type=>"A", :ttl=>80, :resource_records=>[{:value=>"80.80.24.24"}]}},
+      ])
     end
 
-    expect(hz.compile_change_batch).to eq([
-      {:action=>"CREATE", :resource_record_set=>{:name=>"www.test.billetto.com.", :type=>"A", :ttl=>60, :resource_records=>[{:value=>"80.80.22.22"}]}},
-      {:action=>"CREATE", :resource_record_set=>{:name=>"foo.test.billetto.com.", :type=>"A", :ttl=>70, :resource_records=>[{:value=>"80.80.23.23"}]}},
-      {:action=>"CREATE", :resource_record_set=>{:name=>"bar.test.billetto.com.", :type=>"A", :ttl=>80, :resource_records=>[{:value=>"80.80.24.24"}]}},
-    ])
+    context 'advanced compile_change_batch' do
+      before(:all) do
+        hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
+
+        # Entries
+        pe01 = sprinkle_entry('A', 'bar.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
+        pe02 = sprinkle_entry('A', 'noref.test.billetto.com.', '127.0.0.1', 80, 'test.billetto.com.')
+
+        # Aliases
+        pa01 = sprinkle_alias('A', 'war.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+        pa02 = sprinkle_alias('A', 'noraf.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+
+        # Mixed to overwrite
+        pi01 = sprinkle_entry('A', 'entry-to-alias.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
+        pi02 = sprinkle_alias('A', 'alias-to-entry.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+
+        # We are emulating that these records are already live, mark them as persisted
+        [pe01, pe02, pa01, pa02, pi01, pi02].each do |persisted|
+          persisted.persisted!
+          hz.resource_record_sets << persisted
+        end
+
+        client = SprinkleDNS::Route42Client.new([hz])
+        sdns   = SprinkleDNS::Client.new(client)
+
+        # PURE ENTRIES
+        # Adds new
+        sdns.entry('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
+
+        # Adds new and overwrites
+        sdns.entry('A', 'foo.test.billetto.com.', '80.80.23.23', 70, 'test.billetto.com.')
+        sdns.entry('A', 'foo.test.billetto.com.', '81.81.24.24', 80, 'test.billetto.com.')
+
+        # Modifies existing
+        sdns.entry('A', 'bar.test.billetto.com.', '82.82.26.26', 90, 'test.billetto.com.')
+
+        # PURE ALIASES
+        # Adds new
+        sdns.alias('A', 'wap.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+
+        # Adds new and overwrites
+        sdns.alias('A', 'woo.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+        sdns.alias('A', 'woo.test.billetto.com.', 'Z215JYRZR1TBD6', 'dualstack.mothership-test-elb-444444444.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+
+        # Modifies existing
+        sdns.alias('A', 'war.test.billetto.com.', 'Z215JYRZR1TBD6', 'dualstack.mothership-test-elb-444444444.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+
+        # MIXED ENTRIES/ALIASES OVERWRITE
+        sdns.alias('A', 'entry-to-alias.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+        sdns.entry('A', 'alias-to-entry.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
+
+        wanted_hzs, existing_hzs = sdns.sprinkle
+        @existing_hz = existing_hzs.first
+      end
+
+      it "should have a correct number of changes" do
+        expect(@existing_hz.entries_to_create.size).to eq 4
+        expect(@existing_hz.entries_to_update.size).to eq 4
+        expect(@existing_hz.entries_to_delete.size).to eq 2
+      end
+
+      context "references should be correct for" do
+        it "entries" do
+          ['www.test.billetto.com.', 'foo.test.billetto.com.', 'bar.test.billetto.com.'].each do |referenced|
+            expect(@existing_hz.resource_record_sets
+              .select{|r| r.name == referenced}
+              .select{|r| r.class == SprinkleDNS::HostedZoneEntry}
+              .first.referenced?).to eq true
+          end
+          ['noref.test.billetto.com.'].each do |unreferenced|
+            expect(@existing_hz.resource_record_sets
+              .select{|r| r.name == unreferenced}
+              .select{|r| r.class == SprinkleDNS::HostedZoneEntry}
+              .first.referenced?).to eq false
+          end
+        end
+
+        it "aliases" do
+          ['wap.test.billetto.com.', 'woo.test.billetto.com.', 'war.test.billetto.com.'].each do |referenced|
+            expect(@existing_hz.resource_record_sets
+              .select{|r| r.name == referenced}
+              .select{|r| r.class == SprinkleDNS::HostedZoneAlias}
+              .first.referenced?).to eq true
+          end
+          ['noraf.test.billetto.com.'].each do |unreferenced|
+            expect(@existing_hz.resource_record_sets
+              .select{|r| r.name == unreferenced}
+              .select{|r| r.class == SprinkleDNS::HostedZoneAlias}
+              .first.referenced?).to eq false
+          end
+        end
+
+        it "mixed" do
+          entry_to_alias = @existing_hz.resource_record_sets.select{|r| r.name == 'entry-to-alias.test.billetto.com.'}.first
+          expect(entry_to_alias.referenced?).to eq true
+          expect(entry_to_alias.class).to eq SprinkleDNS::HostedZoneEntry
+          expect(entry_to_alias.new_entry.class).to eq SprinkleDNS::HostedZoneAlias
+
+          alias_to_entry = @existing_hz.resource_record_sets.select{|r| r.name == 'alias-to-entry.test.billetto.com.'}.first
+          expect(alias_to_entry.referenced?).to eq true
+          expect(alias_to_entry.class).to eq SprinkleDNS::HostedZoneAlias
+          expect(alias_to_entry.new_entry.class).to eq SprinkleDNS::HostedZoneEntry
+        end
+      end
+
+      context "entries should be correctly set for" do
+        it 'entries' do
+          expect(@existing_hz.entries_to_create.map(&:name)).to include('www.test.billetto.com.', 'foo.test.billetto.com.')
+          expect(@existing_hz.entries_to_update.map(&:name)).to include('bar.test.billetto.com.')
+          expect(@existing_hz.entries_to_delete.map(&:name)).to include('noref.test.billetto.com.')
+        end
+
+        it 'aliases' do
+          expect(@existing_hz.entries_to_create.map(&:name)).to include('wap.test.billetto.com.', 'woo.test.billetto.com.')
+          expect(@existing_hz.entries_to_update.map(&:name)).to include('war.test.billetto.com.')
+          expect(@existing_hz.entries_to_delete.map(&:name)).to include('noraf.test.billetto.com.')
+        end
+
+        it "mixed" do
+          expect(@existing_hz.entries_to_update.map(&:name)).to include('entry-to-alias.test.billetto.com.', 'alias-to-entry.test.billetto.com.')
+        end
+      end
+
+      it "should calculate complicated compile_change_batch" do
+        expect(@existing_hz.compile_change_batch).to eq [
+          {:action=>"UPSERT", :resource_record_set=>{:name=>"bar.test.billetto.com.", :type=>"A", :ttl=>90, :resource_records=>[{:value=>"82.82.26.26"}]}},
+          {:action=>"UPSERT", :resource_record_set=>{:name=>"war.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD6", :dns_name=>"dualstack.mothership-test-elb-444444444.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},
+          {:action=>"UPSERT", :resource_record_set=>{:name=>"entry-to-alias.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD5", :dns_name=> "dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},
+          {:action=>"UPSERT", :resource_record_set=>{:name=>"alias-to-entry.test.billetto.com.", :type=>"A", :ttl=>80, :resource_records=>[{:value=>"80.80.24.24"}]}},
+          {:action=>"CREATE", :resource_record_set=>{:name=>"www.test.billetto.com.", :type=>"A", :ttl=>60, :resource_records=>[{:value=>"80.80.22.22"}]}},
+          {:action=>"CREATE", :resource_record_set=>{:name=>"foo.test.billetto.com.", :type=>"A", :ttl=>80, :resource_records=>[{:value=>"81.81.24.24"}]}},
+          {:action=>"CREATE", :resource_record_set=>{:name=>"wap.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD5", :dns_name=>"dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},
+          {:action=>"CREATE", :resource_record_set=>{:name=>"woo.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD6", :dns_name=>"dualstack.mothership-test-elb-444444444.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},
+        ]
+      end
+    end
   end
 
   context "overwrite an entry" do
