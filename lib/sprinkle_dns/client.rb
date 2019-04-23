@@ -33,17 +33,17 @@ module SprinkleDNS
       hosted_zone.add_or_update_hosted_zone_entry(HostedZoneAlias.new(type, name, hosted_zone_id, dns_name, hosted_zone.name))
     end
 
-    def sprinkle!
-      @existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
+    def sprinkle
+      existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
 
       # Make sure we have the same amount of zones
-      unless @existing_hosted_zones.map(&:name) - @wanted_hosted_zones.map(&:name) == []
+      unless existing_hosted_zones.map(&:name) - @wanted_hosted_zones.map(&:name) == []
         error_message = []
-        error_message << "We found #{@existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones} was described, exiting!"
+        error_message << "We found #{existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones} was described, exiting!"
         error_message << ""
 
         error_message << "Existing:"
-        @existing_hosted_zones.map(&:name).sort.each do |ehz|
+        existing_hosted_zones.map(&:name).sort.each do |ehz|
           error_message << "- #{ehz}"
         end
 
@@ -55,7 +55,7 @@ module SprinkleDNS
         raise error_message.join("\n")
       end
 
-      @existing_hosted_zones.each do |existing_hosted_zone|
+      existing_hosted_zones.each do |existing_hosted_zone|
         wanted_hosted_zone = @wanted_hosted_zones.select{|whz| whz.name == existing_hosted_zone.name}.first
 
         wanted_hosted_zone.resource_record_sets.each do |entry|
@@ -63,6 +63,14 @@ module SprinkleDNS
         end
       end
 
+      [@wanted_hosted_zones, existing_hosted_zones]
+    end
+
+    def sprinkle!
+      wanted_hosted_zones, existing_hosted_zones = sprinkle
+
+      puts existing_hosted_zones.map(&:name)
+      puts wanted_hosted_zones.map(&:name)
     end
 
     private
