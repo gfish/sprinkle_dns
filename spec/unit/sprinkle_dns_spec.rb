@@ -35,30 +35,68 @@ RSpec.describe SprinkleDNS::Client do
     expect(sdns.wanted_hosted_zones.select{|whz| whz.name == 'billetto.com.'}.first.resource_record_sets.count).to eq 2
   end
 
-  it 'should allow overwrites' do
-    r53c = SprinkleDNS::Route53Client.new('1','2')
-    sdns = SprinkleDNS::Client.new(r53c)
+  context "overwrites" do
+    it 'should allow overwrites for a-records' do
+      r53c = SprinkleDNS::Route53Client.new('1','2')
+      sdns = SprinkleDNS::Client.new(r53c)
 
-    ['billetto.at', 'billetto.io', 'billetto.my'].each do |domain|
-      sdns.entry('A', domain, '88.80.80.80', 60)
-      sdns.entry('A', "www.#{domain}", '88.80.80.80', 60)
+      ['billetto.at', 'billetto.io', 'billetto.my'].each do |domain|
+        sdns.entry('A', domain, '88.80.80.80', 60)
+        sdns.entry('A', "www.#{domain}", '88.80.80.80', 60)
+      end
+      # Overwrite and null-route to localhost
+      sdns.entry('A', 'billetto.at', '127.0.0.1', 70)
+
+      hz = sdns.wanted_hosted_zones.select{|hz| hz.name == 'billetto.at.'}.first
+      rrs = hz.resource_record_sets.select{|rrs| rrs.type == 'A' && rrs.name == 'billetto.at.'}.first
+
+      expect(rrs.ttl).to eq 70
+      expect(rrs.value).to eq ["127.0.0.1"]
     end
-    # Overwrite and null-route to localhost
-    sdns.entry('A', 'billetto.at', '127.0.0.1', 60)
 
-    pending
-    raise
-  end
+    it 'should allow overwrites for aliases' do
+      r53c = SprinkleDNS::Route53Client.new('1','2')
+      sdns = SprinkleDNS::Client.new(r53c)
 
-  it 'should allow overwrites of alias' do
-    r53c = SprinkleDNS::Route53Client.new('1','2')
-    sdns = SprinkleDNS::Client.new(r53c)
+      ['billetto.at', 'billetto.io', 'billetto.my'].each do |domain|
+        sdns.alias('A', domain, 'Z215JYRZR1TBD5', 'dualstack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com')
+      end
+      sdns.alias('A', 'billetto.at', 'X317JYRZR1TBD5', 'triplestack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com')
 
-    sdns.entry('A', "billetto.pl", '88.80.80.80', 60)
-    sdns.alias('A', 'billetto.pl', 'Z215JYRZR1TBD5', 'dualstack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com')
+      hz = sdns.wanted_hosted_zones.select{|hz| hz.name == 'billetto.at.'}.first
+      rrs = hz.resource_record_sets.select{|rrs| rrs.type == 'A' && rrs.name == 'billetto.at.'}.first
 
-    pending
-    raise
+      expect(rrs.target_hosted_zone_id).to eq 'X317JYRZR1TBD5'
+      expect(rrs.target_dns_name).to eq 'triplestack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com'
+    end
+
+    it 'should allow overwrites of an a-record with an alias' do
+      r53c = SprinkleDNS::Route53Client.new('1','2')
+      sdns = SprinkleDNS::Client.new(r53c)
+
+      sdns.entry('A', "billetto.pl", '88.80.80.80', 60)
+      sdns.alias('A', 'billetto.pl', 'Z215JYRZR1TBD5', 'dualstack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com')
+
+      hz = sdns.wanted_hosted_zones.select{|hz| hz.name == 'billetto.pl.'}.first
+      rrs = hz.resource_record_sets.select{|rrs| rrs.type == 'A' && rrs.name == 'billetto.pl.'}.first
+
+      expect(rrs.target_hosted_zone_id).to eq 'Z215JYRZR1TBD5'
+      expect(rrs.target_dns_name).to eq 'dualstack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com'
+    end
+
+    it 'should allow overwrites of an alias with an a-record' do
+      r53c = SprinkleDNS::Route53Client.new('1','2')
+      sdns = SprinkleDNS::Client.new(r53c)
+
+      sdns.alias('A', 'billetto.pl', 'Z215JYRZR1TBD5', 'dualstack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com')
+      sdns.entry('A', "billetto.pl", '88.80.80.80', 60)
+
+      hz = sdns.wanted_hosted_zones.select{|hz| hz.name == 'billetto.pl.'}.first
+      rrs = hz.resource_record_sets.select{|rrs| rrs.type == 'A' && rrs.name == 'billetto.pl.'}.first
+
+      expect(rrs.ttl).to eq 60
+      expect(rrs.value).to eq ['88.80.80.80']
+    end
   end
 
   context 'record validation' do
