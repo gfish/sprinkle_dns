@@ -11,9 +11,8 @@ module SprinkleDNS
     attr_reader :wanted_hosted_zones
 
     def initialize(dns_provider)
-      @dns_provider   = dns_provider
-      @wanted_hosted_zones   = []
-      @existing_zones = []
+      @dns_provider = dns_provider
+      @wanted_hosted_zones = []
     end
 
     def entry(type, name, value, ttl = 3600, hosted_zone = nil)
