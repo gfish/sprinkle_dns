@@ -21,8 +21,11 @@ require 'rubygems'
 require 'bundler/setup'
 
 require 'sprinkle_dns'
+require 'sprinkle_dns/providers/route42_client'
 
 require 'vcr'
+
+require './spec/support/entry_helpers'
 
 VCR.configure do |c|
   c.allow_http_connections_when_no_cassette = false
@@ -99,4 +102,6 @@ RSpec.configure do |config|
   # test failures related to randomization by passing the same `--seed` value
   # as the one that triggered the failure.
   Kernel.srand config.seed
+
+  config.include EntryHelpers
 end
