@@ -15,12 +15,12 @@ RSpec.describe SprinkleDNS::Client do
     sdns.entry('CNAME', 'www.es.kaspergrubbe.com',      "#{Time.now.to_i}.example.com.", 42, 'es.kaspergrubbe.com')
     sdns.entry('CNAME', 'staging.es.kaspergrubbe.com.', "#{Time.now.to_i}.example.com.", 42, 'es.kaspergrubbe.com.')
 
-    expect(sdns.wanted_zones.count).to eq 2
-    expect(sdns.wanted_zones['kaspergrubbe.com.']).to be_truthy
-    expect(sdns.wanted_zones['es.kaspergrubbe.com.']).to be_truthy
+    expect(sdns.wanted_hosted_zones.count).to eq 2
+    expect(sdns.wanted_hosted_zones.select{|whz| whz.name == 'kaspergrubbe.com.'}.first).to be_truthy
+    expect(sdns.wanted_hosted_zones.select{|whz| whz.name == 'es.kaspergrubbe.com.'}.first).to be_truthy
 
-    expect(sdns.wanted_zones['kaspergrubbe.com.'].resource_record_sets.count).to eq 6
-    expect(sdns.wanted_zones['es.kaspergrubbe.com.'].resource_record_sets.count).to eq 2
+    expect(sdns.wanted_hosted_zones.select{|whz| whz.name == 'kaspergrubbe.com.'}.first.resource_record_sets.count).to eq 6
+    expect(sdns.wanted_hosted_zones.select{|whz| whz.name == 'es.kaspergrubbe.com.'}.first.resource_record_sets.count).to eq 2
   end
 
   it 'should support alias records' do
@@ -30,9 +30,9 @@ RSpec.describe SprinkleDNS::Client do
     sdns.entry('A', 'billetto.com',     '88.80.80.80', 60)
     sdns.alias('A', 'www.billetto.com', 'Z215JYRZR1TBD5', 'dualstack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com')
 
-    expect(sdns.wanted_zones.count).to eq 1
-    expect(sdns.wanted_zones['billetto.com.']).to be_truthy
-    expect(sdns.wanted_zones['billetto.com.'].resource_record_sets.count).to eq 2
+    expect(sdns.wanted_hosted_zones.count).to eq 1
+    expect(sdns.wanted_hosted_zones.select{|whz| whz.name == 'billetto.com.'}.first).to be_truthy
+    expect(sdns.wanted_hosted_zones.select{|whz| whz.name == 'billetto.com.'}.first.resource_record_sets.count).to eq 2
   end
 
   it 'should allow overwrites' do
