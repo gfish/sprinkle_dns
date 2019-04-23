@@ -35,13 +35,18 @@ module SprinkleDNS
     end
 
     def sprinkle!
-      puts @wanted_hosted_zones.map(&:name)
+      @existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
 
-      @dns_provider.set_wanted_hosted_zones(@wanted_hosted_zones)
 
-      @existing_hosted_zones = @dns_provider.get_hosted_zones(@wanted_hosted_zones)
 
-      @dns_provider.sync!
+      @existing_hosted_zones.each do |existing_hosted_zone|
+        wanted_hosted_zone = @wanted_hosted_zones.select{|whz| whz.name == existing_hosted_zone.name}.first
+
+        wanted_hosted_zone.resource_record_sets.each do |entry|
+          existing_hosted_zone.add_or_update_hosted_zone_entry(entry)
+        end
+      end
+
     end
 
     private
