@@ -9,9 +9,7 @@ module SprinkleDNS
       @type           = type
       @name           = zonify!(name)
       @value          = Array.wrap(value)
-      @original_value = @value
       @ttl            = ttl
-      @original_ttl   = ttl
       @hosted_zone    = hosted_zone
 
       @new_entry      = nil
