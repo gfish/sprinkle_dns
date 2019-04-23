@@ -15,16 +15,17 @@ module SprinkleDNS
 
       if existing_entry
         if existing_entry.persisted?
+          existing_entry.mark_referenced!
           existing_entry.new_value(wanted_entry)
         else
+          wanted_entry.mark_referenced!
           @resource_record_sets[@resource_record_sets.index(existing_entry)] = wanted_entry
         end
       else
         wanted_entry.mark_new!
+        wanted_entry.mark_referenced!
         @resource_record_sets << wanted_entry
       end
-
-      wanted_entry.mark_referenced!
     end
 
     def entries_to_create
