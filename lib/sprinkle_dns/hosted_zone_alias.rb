@@ -6,23 +6,20 @@ module SprinkleDNS
     attr_accessor :new_entry
 
     def initialize(type, name, target_hosted_zone_id, target_dns_name, hosted_zone)
-      @type           = type
-      @name           = zonify!(name)
-      @hosted_zone    = hosted_zone
-
-      @target_hosted_zone_id          = target_hosted_zone_id
-      @changed_target_hosted_zone_id  = false
-      @original_target_hosted_zone_id = target_hosted_zone_id.clone
-
-      @target_dns_name          = target_dns_name
-      @changed_target_dns_name  = false
-      @original_target_dns_name = target_dns_name.clone
+      @type                  = type
+      @name                  = zonify!(name)
+      @target_hosted_zone_id = target_hosted_zone_id
+      @target_dns_name       = target_dns_name
+      @hosted_zone           = hosted_zone
 
       @new_entry = nil
 
       raise if [@type, @name, @target_hosted_zone_id, @target_dns_name, @hosted_zone].any?(&:nil?)
+
+      @changed_target_hosted_zone_id = false
+      @changed_target_dns_name = false
       @referenced = false
-      @persisted  = false
+      @persisted = false
     end
 
     def mark_new!
@@ -62,6 +59,7 @@ module SprinkleDNS
         @changed_target_dns_name       = true
       end
 
+      # TODO test this
       if @changed_target_hosted_zone_id || @changed_target_dns_name
         @new_entry = new_entry
       end
