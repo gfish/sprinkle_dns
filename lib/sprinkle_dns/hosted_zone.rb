@@ -61,7 +61,7 @@ module SprinkleDNS
       entries_to_update.each do |entry|
         change_batch_options << {
           action: 'UPSERT',
-          resource_record_set: entry_to_rrs(entry),
+          resource_record_set: entry_to_rrs(entry.new_entry),
         }
       end
 
@@ -78,12 +78,6 @@ module SprinkleDNS
     private
 
     def entry_to_rrs(entry)
-      entry = if entry.new_entry
-        entry.new_entry
-      else
-        entry
-      end
-
       case entry
       when HostedZoneEntry
         {
