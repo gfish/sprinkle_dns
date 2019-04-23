@@ -95,8 +95,8 @@ module SprinkleDNS
           name: entry.name,
           type: entry.type,
           alias_target: {
-            hosted_zone_id: entry.hosted_zone_id,
-            dns_name: entry.dns_name,
+            hosted_zone_id: entry.target_hosted_zone_id,
+            dns_name: entry.target_dns_name,
             evaluate_target_health: false,
           },
         }
