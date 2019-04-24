@@ -1,6 +1,31 @@
 require 'spec_helper'
 
 RSpec.describe SprinkleDNS::HostedZone do
+  context "update data" do
+    it 'should update changed data accordingly' do
+      hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
+      hz_entry01 = sprinkle_entry('A', 'updatevalue.test.billetto.com.', '80.80.22.22', 60, hz.name)
+      hz_entry02 = sprinkle_entry('A', 'updatettl.test.billetto.com.', '80.80.22.22', 60, hz.name)
+      hz_entry01.persisted!
+      hz_entry02.persisted!
+      hz.resource_record_sets = [hz_entry01, hz_entry02]
+
+      hz_entry03 = sprinkle_entry('A', 'updatevalue.test.billetto.com.', '90.90.22.22', 60, hz.name)
+      hz_entry04 = sprinkle_entry('A', 'updatettl.test.billetto.com.', '80.80.22.22', 120, hz.name)
+      [hz_entry03, hz_entry04].each do |hz_entry|
+        hz.add_or_update_hosted_zone_entry(hz_entry)
+      end
+
+      updatedvalue = hz.resource_record_sets.select{|rrs| rrs.name == 'updatevalue.test.billetto.com.'}.first
+      expect(updatedvalue.changed_value).to eq true
+      expect(updatedvalue.changed_ttl).to eq false
+
+      updatedttl = hz.resource_record_sets.select{|rrs| rrs.name == 'updatettl.test.billetto.com.'}.first
+      expect(updatedttl.changed_value).to eq false
+      expect(updatedttl.changed_ttl).to eq true
+    end
+  end
+
   context "compile_change_batch" do
     it 'should correctly calculate a compile_change_batch' do
       hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
