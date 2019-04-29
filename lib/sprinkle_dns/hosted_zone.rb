@@ -33,11 +33,11 @@ module SprinkleDNS
     end
 
     def entries_to_create
-      @resource_record_sets.select{|hze| hze.referenced?}.select{|hze| hze.new?}
+      @resource_record_sets.select{|hze| hze.referenced? && hze.new?}
     end
 
     def entries_to_update
-      @resource_record_sets.select{|hze| hze.referenced?}.select{|hze| hze.changed? && !hze.new?}
+      @resource_record_sets.select{|hze| hze.referenced? && hze.changed? && !hze.new?}
     end
 
     def entries_to_delete
