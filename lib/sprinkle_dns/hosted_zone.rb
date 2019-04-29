@@ -11,7 +11,7 @@ module SprinkleDNS
     def add_or_update_hosted_zone_entry(wanted_entry)
       raise if wanted_entry.hosted_zone != self.name
 
-      existing_entry = @resource_record_sets.select{|hze| hze.type == wanted_entry.type && hze.name == wanted_entry.name}.first
+      existing_entry = @resource_record_sets.find{|hze| hze.type == wanted_entry.type && hze.name == wanted_entry.name}
 
       if existing_entry
         if existing_entry.persisted?
