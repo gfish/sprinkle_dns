@@ -67,7 +67,7 @@ RSpec.describe SprinkleDNS::HostedZone do
           hz.resource_record_sets << persisted
         end
 
-        client = SprinkleDNS::Route42Client.new([hz])
+        client = SprinkleDNS::MockClient.new([hz])
         sdns   = SprinkleDNS::Client.new(client)
 
         # PURE ENTRIES

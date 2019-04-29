@@ -21,7 +21,7 @@ require 'rubygems'
 require 'bundler/setup'
 
 require 'sprinkle_dns'
-require 'sprinkle_dns/providers/route42_client'
+require 'sprinkle_dns/providers/mock_client'
 
 require 'vcr'
 

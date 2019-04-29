@@ -1,12 +1,12 @@
 require 'spec_helper'
 
-RSpec.describe SprinkleDNS::Route42Client do
+RSpec.describe SprinkleDNS::MockClient do
   context "#fetch" do
     it "should return empty list when given empty array" do
       hz = SprinkleDNS::HostedZone.new('billetto.se.')
       en = sprinkle_entry("A", "beta.billetto.se", '88.80.188.143', 60, hz.name)
       hz.add_or_update_hosted_zone_entry(en)
-      c42 = SprinkleDNS::Route42Client.new([en])
+      c42 = SprinkleDNS::MockClient.new([en])
 
       expect(c42.fetch_hosted_zones).to eq []
       expect(c42.fetch_hosted_zones(filter: [])).to eq []
@@ -16,7 +16,7 @@ RSpec.describe SprinkleDNS::Route42Client do
       hz = SprinkleDNS::HostedZone.new('billetto.se.')
       en = sprinkle_entry("A", "beta.billetto.se", '88.80.188.143', 60, hz.name)
       hz.add_or_update_hosted_zone_entry(en)
-      c42 = SprinkleDNS::Route42Client.new([hz])
+      c42 = SprinkleDNS::MockClient.new([hz])
 
       expect(en.persisted?).to be false
       c42.fetch_hosted_zones(filter: [hz.name])
@@ -50,7 +50,7 @@ RSpec.describe SprinkleDNS::Route42Client do
 
       hosted_zones << hzse
 
-      c42 = SprinkleDNS::Route42Client.new(hosted_zones)
+      c42 = SprinkleDNS::MockClient.new(hosted_zones)
       expect(c42.fetch_hosted_zones(filter: ['billetto.dk.', 'billetto.se.'])).to include(hzdk, hzse)
       expect(c42.fetch_hosted_zones(filter: ['billetto.dk.'])).to include(hzdk)
       expect(c42.fetch_hosted_zones(filter: ['billetto.se.'])).to include(hzse)

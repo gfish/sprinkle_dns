@@ -15,7 +15,7 @@ RSpec.describe SprinkleDNS::CliDiff do
       hz.resource_record_sets << persisted
     end
 
-    client = SprinkleDNS::Route42Client.new([hz])
+    client = SprinkleDNS::MockClient.new([hz])
     sdns   = SprinkleDNS::Client.new(client)
 
     sdns.entry('A', 'updateme.test.colourful.com.', '90.90.90.90', 7200, 'test.colourful.com')
