@@ -3,6 +3,7 @@ require 'sprinkle_dns/hosted_zone'
 require 'sprinkle_dns/hosted_zone_domain'
 require 'sprinkle_dns/hosted_zone_entry'
 require 'sprinkle_dns/hosted_zone_alias'
+require 'sprinkle_dns/cli_diff'
 require 'sprinkle_dns/core_ext/array_wrap'
 require 'sprinkle_dns/core_ext/zonify'
 
