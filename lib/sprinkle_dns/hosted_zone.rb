@@ -28,6 +28,10 @@ module SprinkleDNS
       end
     end
 
+    def entries
+      @resource_record_sets
+    end
+
     def entries_to_create
       @resource_record_sets.select{|hze| hze.referenced?}.select{|hze| hze.new?}
     end
