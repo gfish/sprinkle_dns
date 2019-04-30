@@ -4,7 +4,11 @@ require 'sprinkle_dns/hosted_zone'
 require 'sprinkle_dns/hosted_zone_domain'
 require 'sprinkle_dns/hosted_zone_entry'
 require 'sprinkle_dns/hosted_zone_alias'
+
 require 'sprinkle_dns/cli/hosted_zone_diff'
+require 'sprinkle_dns/cli/interactive_change_request_printer'
+require 'sprinkle_dns/cli/propagated_change_request_printer'
+
 require 'sprinkle_dns/core_ext/array_wrap'
 require 'sprinkle_dns/core_ext/zonify'
 
@@ -97,10 +101,15 @@ module SprinkleDNS
       end
 
       change_requests = @dns_provider.change_hosted_zones(existing_hosted_zones, delete: @config.delete?)
+      progress_printer = if @config.interactive_progress?
+        SprinkleDNS::CLI::InteractiveChangeRequestPrinter.new
+      else
+        SprinkleDNS::CLI::PropagatedChangeRequestPrinter.new
+      end
 
       begin
         @dns_provider.check_change_requests(change_requests)
-        yield(change_requests) if block_given?
+        progress_printer.draw(change_requests)
       end until change_requests.all?{|cr| cr.in_sync}
 
       [existing_hosted_zones, change_requests]
