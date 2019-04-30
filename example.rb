@@ -1,18 +1,27 @@
 require 'sprinkle_dns'
+
 require_relative 'test_perms'
-
 client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
-sdns   = SprinkleDNS::Client.new(client)
 
-sdns.entry('A',   'beta.kaspergrubbe.com',   '88.80.188.142', 360)
-sdns.entry('A',   'kaspergrubbe.com',        '88.80.188.142', 60)
-sdns.entry('A',   'assets.kaspergrubbe.com', '88.80.188.142', 60)
-sdns.entry('MX',  'mail.kaspergrubbe.com',   ['10 mailserver.example.com', '20 mailserver2.example.com'], 300)
-sdns.entry('MX',  'main.kaspergrubbe.com',   ['10 mailserver.example.com'], 300)
-sdns.entry('A',   'streamy.kaspergrubbe.com.', '198.211.96.200', 60)
-sdns.entry('A',   'kaspergrubbe.dk', '88.80.188.142', 60)
-sdns.entry('TXT', 'mesmtp._domainkey.kaspergrubbe.dk.', "\"v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDXbFGl/d7coaDUSBEm1VC32S1F957iwCLawI5mEEp++BzWvmy4Iw03jDohgvX5tPNKSDwwYhzZR+TIdrJZV1lWwQn/ym/QNnjpiMGGJtOrRxFj3TayrgJ87gS8O/1DIeVHmAOB0wX5fbdYGVgzCCznhxY54oeUfh39fluKHrB1owIDAQAB\"", 300)
-sdns.entry('A',   'assets.kaspergrubbe.dk', '88.80.188.142', 60)
-sdns.entry('A',   'streamy.kaspergrubbe.dk', '198.211.96.200', 60)
+#require 'sprinkle_dns/providers/mock_client'
 
-sdns.sprinkle!
+# hz = SprinkleDNS::HostedZone.new('test.colourful.com.')
+# pe01 = SprinkleDNS::HostedZoneEntry.new('A', 'noref.test.colourful.com.', Array.wrap('80.80.80.80'), 3600, hz.name)
+# pe02 = SprinkleDNS::HostedZoneEntry.new('A', 'updateme.test.colourful.com.', Array.wrap('80.80.80.80'), 3600, hz.name)
+# pe03 = SprinkleDNS::HostedZoneEntry.new('TXT', 'txt.test.colourful.com.', %Q{"#{Time.now.to_i}"}, 60, hz.name)
+# pe04 = SprinkleDNS::HostedZoneEntry.new('A', 'nochange.test.colourful.com.', Array.wrap('80.80.80.80'), 60, hz.name)
+# sleep(1)
+# # We are emulating that these records are already live, mark them as persisted
+# [pe01, pe02, pe03, pe04].each do |persisted|
+#   persisted.persisted!
+#   hz.resource_record_sets << persisted
+# end
+
+# client = SprinkleDNS::MockClient.new([hz])
+sdns = SprinkleDNS::Client.new(client, delete: true, force: false)
+
+sdns.entry('A', 'updateme.test.billetto.com.', '90.90.90.90', 7200, 'test.billetto.com')
+sdns.entry('TXT', 'txt.test.billetto.com', %Q{"#{Time.now.to_i}"}, 60, 'test.billetto.com')
+sdns.entry('A', 'nochange.test.billetto.com.', '80.80.80.80', 60, 'test.billetto.com')
+
+existing_hosted_zones, _ = sdns.sprinkle!
