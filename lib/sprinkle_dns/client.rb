@@ -34,7 +34,7 @@ module SprinkleDNS
       hosted_zone.add_or_update_hosted_zone_entry(HostedZoneAlias.new(type, name, hosted_zone_id, dns_name, hosted_zone.name))
     end
 
-    def sprinkle
+    def compare
       existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
 
       # Make sure we have the same amount of zones
@@ -68,11 +68,40 @@ module SprinkleDNS
       [@wanted_hosted_zones, existing_hosted_zones]
     end
 
-    def sprinkle!
-      wanted_hosted_zones, existing_hosted_zones = sprinkle
+    def sprinkle!(dry_run: false, diff: true, force: true)
+      _, existing_hosted_zones = compare
 
-      puts existing_hosted_zones.map(&:name)
-      puts wanted_hosted_zones.map(&:name)
+      if diff
+        SprinkleDNS::CliDiff.new.diff(existing_hosted_zones).each do |line|
+          puts line.join(' ')
+        end
+      end
+
+      if dry_run
+        return [existing_hosted_zones, nil]
+      end
+
+      if force == false
+        changes = existing_hosted_zones.collect{|h| h.entries_to_change}.sum
+        puts
+        print "#{changes} changes to make. Continue? (y/N)"
+        case gets.strip
+        when 'y', 'Y'
+          # continue
+        else
+          puts ".. exiting!"
+          return [existing_hosted_zones, nil]
+        end
+      end
+
+      change_requests = @dns_provider.change_hosted_zones(existing_hosted_zones)
+
+      begin
+        @dns_provider.check_change_requests(change_requests)
+        yield(change_requests) if block_given?
+      end until change_requests.all?{|cr| cr.in_sync}
+
+      [existing_hosted_zones, change_requests]
     end
 
     private
