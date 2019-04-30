@@ -59,6 +59,37 @@ module SprinkleDNS
       hosted_zones
     end
 
+    def change_hosted_zones(hosted_zones)
+      change_requests = []
+
+      hosted_zones.each do |hosted_zone|
+        if hosted_zone.compile_change_batch.any?
+          change_request = @api_client.change_resource_record_sets({
+            hosted_zone_id: @hosted_zone_to_api_mapping[hosted_zone.name],
+            change_batch: {
+              changes: hosted_zone.compile_change_batch,
+            }
+          })
+
+          change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
+        else
+          change_requests << Route53ChangeRequest.new(hosted_zone, nil, 1, true)
+        end
+      end
+
+      change_requests
+    end
+
+    def check_change_requests(change_requests)
+      change_requests.reject{|cr| cr.in_sync}.each do |change_request|
+        resp = @api_client.get_change({id: change_request.change_info_id})
+        change_request.in_sync = resp.change_info.status == 'INSYNC'
+        change_request.tries  += 1
+      end
+
+      change_requests
+    end
+
     private
 
     def ignored_record_types
