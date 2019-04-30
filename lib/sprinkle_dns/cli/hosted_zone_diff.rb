@@ -1,5 +1,5 @@
-module SprinkleDNS
-  class CliDiff
+module SprinkleDNS::CLI
+  class HostedZoneDiff
     Entry = Struct.new(:action, :type, :name, :value1, :value1_highlight, :value2, :value2_highlight, :hosted_zone)
 
     def diff(hosted_zones)

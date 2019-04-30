@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-RSpec.describe SprinkleDNS::CliDiff do
+RSpec.describe SprinkleDNS::CLI::HostedZoneDiff do
   it 'should print' do
     hz = SprinkleDNS::HostedZone.new('test.colourful.com.')
     pe01 = SprinkleDNS::HostedZoneEntry.new('A', 'noref.test.colourful.com.', Array.wrap('80.80.80.80'), 3600, hz.name)
@@ -23,7 +23,7 @@ RSpec.describe SprinkleDNS::CliDiff do
 
     existing_hosted_zones, _ = sdns.sprinkle!
 
-    SprinkleDNS::CliDiff.new.diff(existing_hosted_zones).each do |line|
+    SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones).each do |line|
       puts line.join(' ')
     end
   end

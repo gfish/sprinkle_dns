@@ -4,7 +4,7 @@ require 'sprinkle_dns/hosted_zone'
 require 'sprinkle_dns/hosted_zone_domain'
 require 'sprinkle_dns/hosted_zone_entry'
 require 'sprinkle_dns/hosted_zone_alias'
-require 'sprinkle_dns/cli_diff'
+require 'sprinkle_dns/cli/hosted_zone_diff'
 require 'sprinkle_dns/core_ext/array_wrap'
 require 'sprinkle_dns/core_ext/zonify'
 
@@ -74,7 +74,7 @@ module SprinkleDNS
       _, existing_hosted_zones = compare
 
       if @config.diff?
-        SprinkleDNS::CliDiff.new.diff(existing_hosted_zones).each do |line|
+        SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones).each do |line|
           puts line.join(' ')
         end
       end
