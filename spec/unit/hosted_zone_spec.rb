@@ -49,6 +49,10 @@ RSpec.describe SprinkleDNS::HostedZone do
       before(:all) do
         hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
 
+        # Static
+        ps01 = sprinkle_entry('A', 'staticentry.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
+        ps02 = sprinkle_alias('A', 'staticalias.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
+
         # Entries
         pe01 = sprinkle_entry('A', 'bar.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
         pe02 = sprinkle_entry('A', 'noref.test.billetto.com.', '127.0.0.1', 80, 'test.billetto.com.')
@@ -62,13 +66,17 @@ RSpec.describe SprinkleDNS::HostedZone do
         pi02 = sprinkle_alias('A', 'alias-to-entry.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
 
         # We are emulating that these records are already live, mark them as persisted
-        [pe01, pe02, pa01, pa02, pi01, pi02].each do |persisted|
+        [ps01, ps02, pe01, pe02, pa01, pa02, pi01, pi02].each do |persisted|
           persisted.persisted!
           hz.resource_record_sets << persisted
         end
 
         client = SprinkleDNS::MockClient.new([hz])
         sdns   = SprinkleDNS::Client.new(client)
+
+        # Static entries
+        sdns.entry('A', 'staticentry.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
+        sdns.alias('A', 'staticalias.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
 
         # PURE ENTRIES
         # Adds new
@@ -96,7 +104,7 @@ RSpec.describe SprinkleDNS::HostedZone do
         sdns.alias('A', 'entry-to-alias.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
         sdns.entry('A', 'alias-to-entry.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
 
-        wanted_hzs, existing_hzs = sdns.sprinkle
+        _, existing_hzs = sdns.sprinkle
         @existing_hz = existing_hzs.first
       end
 
@@ -104,6 +112,7 @@ RSpec.describe SprinkleDNS::HostedZone do
         expect(@existing_hz.entries_to_create.size).to eq 4
         expect(@existing_hz.entries_to_update.size).to eq 4
         expect(@existing_hz.entries_to_delete.size).to eq 2
+        expect(@existing_hz.entries_not_touched.size).to eq 2
       end
 
       context "references should be correct for" do
