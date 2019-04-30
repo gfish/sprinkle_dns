@@ -34,7 +34,9 @@ module SprinkleDNS
       hosted_zone.add_or_update_hosted_zone_entry(HostedZoneAlias.new(type, name, hosted_zone_id, dns_name, hosted_zone.name))
     end
 
-    def compare
+    def compare(delete: false)
+      raise SettingNotBoolean.new('delete is not a boolean') unless [true, false].include?(delete)
+
       existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
 
       # Make sure we have the same amount of zones
@@ -68,12 +70,13 @@ module SprinkleDNS
       [@wanted_hosted_zones, existing_hosted_zones]
     end
 
-    def sprinkle!(dry_run: false, diff: true, force: true)
-      raise SettingNotBoolean.new('dry_run not a boolean') unless [true, false].include?(dry_run)
-      raise SettingNotBoolean.new('diff not a boolean') unless [true, false].include?(diff)
-      raise SettingNotBoolean.new('force not a boolean') unless [true, false].include?(force)
+    def sprinkle!(dry_run: false, diff: true, force: true, delete: false)
+      raise SettingNotBoolean.new('dry_run is not a boolean') unless [true, false].include?(dry_run)
+      raise SettingNotBoolean.new('diff is not a boolean') unless [true, false].include?(diff)
+      raise SettingNotBoolean.new('force is not a boolean') unless [true, false].include?(force)
+      raise SettingNotBoolean.new('delete is not a boolean') unless [true, false].include?(delete)
 
-      _, existing_hosted_zones = compare
+      _, existing_hosted_zones = compare(delete: delete)
 
       if diff
         SprinkleDNS::CliDiff.new.diff(existing_hosted_zones).each do |line|
