@@ -8,8 +8,6 @@ RSpec.describe SprinkleDNS::CliDiff do
     pe03 = SprinkleDNS::HostedZoneEntry.new('TXT', 'txt.test.colourful.com.', %Q{"#{Time.now.to_i}"}, 60, hz.name)
     pe04 = SprinkleDNS::HostedZoneEntry.new('A', 'nochange.test.colourful.com.', Array.wrap('80.80.80.80'), 60, hz.name)
 
-    sleep(1)
-
     # We are emulating that these records are already live, mark them as persisted
     [pe01, pe02, pe03, pe04].each do |persisted|
       persisted.persisted!
@@ -20,7 +18,7 @@ RSpec.describe SprinkleDNS::CliDiff do
     sdns   = SprinkleDNS::Client.new(client)
 
     sdns.entry('A', 'updateme.test.colourful.com.', '90.90.90.90', 7200, 'test.colourful.com')
-    sdns.entry('TXT', 'txt.test.colourful.com', %Q{"#{Time.now.to_i}"}, 60, 'test.colourful.com')
+    sdns.entry('TXT', 'txt.test.colourful.com', %Q{"#{Time.now.to_i+10}"}, 60, 'test.colourful.com')
     sdns.entry('A', 'nochange.test.colourful.com.', '80.80.80.80', 60, 'test.colourful.com')
 
     existing_hosted_zones, _ = sdns.sprinkle!(dry_run: true)
