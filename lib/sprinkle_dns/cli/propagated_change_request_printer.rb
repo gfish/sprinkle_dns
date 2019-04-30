@@ -11,7 +11,7 @@ module SprinkleDNS::CLI
           hosted_zone_name = change_request.hosted_zone.name
 
           unless @completed.include?(hosted_zone_name)
-            @completed << hosted_zone_name
+            @completed << hosted_zone_name + '.' * change_request.tries
           end
         end
       end
