@@ -69,6 +69,10 @@ module SprinkleDNS
     end
 
     def sprinkle!(dry_run: false, diff: true, force: true)
+      raise SettingNotBoolean.new('dry_run not a boolean') unless [true, false].include?(dry_run)
+      raise SettingNotBoolean.new('diff not a boolean') unless [true, false].include?(diff)
+      raise SettingNotBoolean.new('force not a boolean') unless [true, false].include?(force)
+
       _, existing_hosted_zones = compare
 
       if diff
