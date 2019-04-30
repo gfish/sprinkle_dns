@@ -9,6 +9,7 @@ RSpec.describe SprinkleDNS::CliDiff do
     pe04 = SprinkleDNS::HostedZoneEntry.new('A', 'nochange.test.colourful.com.', Array.wrap('80.80.80.80'), 60, hz.name)
 
     sleep(1)
+
     # We are emulating that these records are already live, mark them as persisted
     [pe01, pe02, pe03, pe04].each do |persisted|
       persisted.persisted!
