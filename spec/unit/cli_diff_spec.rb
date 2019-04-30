@@ -15,13 +15,13 @@ RSpec.describe SprinkleDNS::CliDiff do
     end
 
     client = SprinkleDNS::MockClient.new([hz])
-    sdns   = SprinkleDNS::Client.new(client)
+    sdns   = SprinkleDNS::Client.new(client, dry_run: true)
 
     sdns.entry('A', 'updateme.test.colourful.com.', '90.90.90.90', 7200, 'test.colourful.com')
     sdns.entry('TXT', 'txt.test.colourful.com', %Q{"#{Time.now.to_i+10}"}, 60, 'test.colourful.com')
     sdns.entry('A', 'nochange.test.colourful.com.', '80.80.80.80', 60, 'test.colourful.com')
 
-    existing_hosted_zones, _ = sdns.sprinkle!(dry_run: true)
+    existing_hosted_zones, _ = sdns.sprinkle!
 
     SprinkleDNS::CliDiff.new.diff(existing_hosted_zones).each do |line|
       puts line.join(' ')

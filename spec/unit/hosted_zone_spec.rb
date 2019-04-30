@@ -104,7 +104,7 @@ RSpec.describe SprinkleDNS::HostedZone do
         sdns.alias('A', 'entry-to-alias.test.billetto.com.', 'Z215JYRZR1TBD5', 'dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com', 'test.billetto.com.')
         sdns.entry('A', 'alias-to-entry.test.billetto.com.', '80.80.24.24', 80, 'test.billetto.com.')
 
-        _, existing_hzs = sdns.sprinkle
+        _, existing_hzs = sdns.compare
         @existing_hz = existing_hzs.first
       end
 

@@ -1,4 +1,5 @@
 require 'sprinkle_dns/exceptions'
+require 'sprinkle_dns/config'
 require 'sprinkle_dns/hosted_zone'
 require 'sprinkle_dns/hosted_zone_domain'
 require 'sprinkle_dns/hosted_zone_entry'
@@ -9,9 +10,10 @@ require 'sprinkle_dns/core_ext/zonify'
 
 module SprinkleDNS
   class Client
-    attr_reader :wanted_hosted_zones
+    attr_reader :wanted_hosted_zones, :config
 
-    def initialize(dns_provider)
+    def initialize(dns_provider, dry_run: false, diff: true, force: true, delete: false)
+      @config = SprinkleDNS::Config.new(dry_run: dry_run, diff: diff, force: force, delete: delete)
       @dns_provider = dns_provider
       @wanted_hosted_zones = []
     end
@@ -34,9 +36,7 @@ module SprinkleDNS
       hosted_zone.add_or_update_hosted_zone_entry(HostedZoneAlias.new(type, name, hosted_zone_id, dns_name, hosted_zone.name))
     end
 
-    def compare(delete: false)
-      raise SettingNotBoolean.new('delete is not a boolean') unless [true, false].include?(delete)
-
+    def compare
       existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
 
       # Make sure we have the same amount of zones
@@ -70,25 +70,20 @@ module SprinkleDNS
       [@wanted_hosted_zones, existing_hosted_zones]
     end
 
-    def sprinkle!(dry_run: false, diff: true, force: true, delete: false)
-      raise SettingNotBoolean.new('dry_run is not a boolean') unless [true, false].include?(dry_run)
-      raise SettingNotBoolean.new('diff is not a boolean') unless [true, false].include?(diff)
-      raise SettingNotBoolean.new('force is not a boolean') unless [true, false].include?(force)
-      raise SettingNotBoolean.new('delete is not a boolean') unless [true, false].include?(delete)
+    def sprinkle!
+      _, existing_hosted_zones = compare
 
-      _, existing_hosted_zones = compare(delete: delete)
-
-      if diff
+      if @config.diff?
         SprinkleDNS::CliDiff.new.diff(existing_hosted_zones).each do |line|
           puts line.join(' ')
         end
       end
 
-      if dry_run
+      if @config.dry_run?
         return [existing_hosted_zones, nil]
       end
 
-      if force == false
+      if @config.force? == false
         changes = existing_hosted_zones.collect{|h| h.entries_to_change}.sum
         puts
         print "#{changes} changes to make. Continue? (y/N)"
