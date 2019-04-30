@@ -48,8 +48,12 @@ module SprinkleDNS
       @resource_record_sets.select{|hze| hze.referenced? && !hze.new? && !hze.changed?}
     end
 
+    def entries_to_change
+      [entries_to_create, entries_to_update, entries_to_delete].map(&:size).inject(:+)
+    end
+
     def entries_to_change?
-      [entries_to_create, entries_to_update, entries_to_delete].map(&:size).inject(:+) > 0
+      entries_to_change > 0
     end
 
     def compile_change_batch
