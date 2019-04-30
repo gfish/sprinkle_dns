@@ -45,6 +45,42 @@ RSpec.describe SprinkleDNS::HostedZone do
       ])
     end
 
+    context 'delete unreferenced' do
+      before(:all) do
+        hz = SprinkleDNS::HostedZone.new('unreferenced.com.')
+
+        # Entries
+        pe01 = sprinkle_entry('A', 'bar.unreferenced.com', '80.80.24.24', 80, 'unreferenced.com.')
+        pe02 = sprinkle_entry('A', 'noref.unreferenced.com', '127.0.0.1', 80, 'unreferenced.com.')
+
+        # We are emulating that these records are already live, mark them as persisted
+        [pe01, pe02].each do |persisted|
+          persisted.persisted!
+          hz.resource_record_sets << persisted
+        end
+
+        client = SprinkleDNS::MockClient.new([hz])
+        sdns   = SprinkleDNS::Client.new(client, delete: true)
+
+        sdns.entry('A', 'bar.unreferenced.com', '80.80.24.24', 80)
+
+        _, existing_hzs = sdns.compare
+        @existing_hz = existing_hzs.first
+      end
+
+      it 'lol' do
+        expect(@existing_hz.entries_to_delete.size).to eq 1
+        delete_entry = @existing_hz.entries_to_delete.first
+        expect(delete_entry.type).to eq 'A'
+        expect(delete_entry.name).to eq 'noref.unreferenced.com.'
+
+        expect(@existing_hz.compile_change_batch).to eq []
+        expect(@existing_hz.compile_change_batch(delete: true)).to eq [
+          {:action=>"DELETE", :resource_record_set=>{:name=>"noref.unreferenced.com.", :type=>"A", :ttl=>80, :resource_records=>[{:value=>"127.0.0.1"}]}}
+        ]
+      end
+    end
+
     context 'advanced compile_change_batch' do
       before(:all) do
         hz = SprinkleDNS::HostedZone.new('test.billetto.com.')

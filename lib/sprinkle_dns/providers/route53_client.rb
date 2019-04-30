@@ -59,15 +59,17 @@ module SprinkleDNS
       hosted_zones
     end
 
-    def change_hosted_zones(hosted_zones)
+    def change_hosted_zones(hosted_zones, delete: false)
       change_requests = []
 
       hosted_zones.each do |hosted_zone|
-        if hosted_zone.compile_change_batch.any?
+        changes = hosted_zone.compile_change_batch(delete: delete)
+
+        if changes.any?
           change_request = @api_client.change_resource_record_sets({
             hosted_zone_id: @hosted_zone_to_api_mapping[hosted_zone.name],
             change_batch: {
-              changes: hosted_zone.compile_change_batch,
+              changes: changes,
             }
           })
 

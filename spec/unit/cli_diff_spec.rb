@@ -15,7 +15,7 @@ RSpec.describe SprinkleDNS::CliDiff do
     end
 
     client = SprinkleDNS::MockClient.new([hz])
-    sdns   = SprinkleDNS::Client.new(client, dry_run: true)
+    sdns   = SprinkleDNS::Client.new(client, dry_run: true, diff: false)
 
     sdns.entry('A', 'updateme.test.colourful.com.', '90.90.90.90', 7200, 'test.colourful.com')
     sdns.entry('TXT', 'txt.test.colourful.com', %Q{"#{Time.now.to_i+10}"}, 60, 'test.colourful.com')

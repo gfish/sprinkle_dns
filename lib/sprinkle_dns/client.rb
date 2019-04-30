@@ -83,7 +83,7 @@ module SprinkleDNS
         return [existing_hosted_zones, nil]
       end
 
-      if @config.force? == false
+      unless @config.force?
         changes = existing_hosted_zones.collect{|h| h.entries_to_change}.sum
         puts
         print "#{changes} changes to make. Continue? (y/N)"
@@ -96,7 +96,7 @@ module SprinkleDNS
         end
       end
 
-      change_requests = @dns_provider.change_hosted_zones(existing_hosted_zones)
+      change_requests = @dns_provider.change_hosted_zones(existing_hosted_zones, delete: @config.delete?)
 
       begin
         @dns_provider.check_change_requests(change_requests)

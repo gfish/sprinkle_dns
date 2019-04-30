@@ -56,13 +56,12 @@ module SprinkleDNS
       entries_to_change > 0
     end
 
-    def compile_change_batch
+    def compile_change_batch(delete: false)
       change_batch_options = []
 
       entries_to_delete.each do |entry|
         # Figure out a way to pass options, and then delete
-        puts "NOT DELETING #{entry}"
-        if true == false
+        if delete == true
           change_batch_options << {
             action: 'DELETE',
             resource_record_set: entry_to_rrs(entry),
