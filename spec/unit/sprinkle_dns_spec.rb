@@ -99,6 +99,29 @@ RSpec.describe SprinkleDNS::Client do
     end
   end
 
+  context 'syncing' do
+    before(:all) do
+      hz = SprinkleDNS::HostedZone.new('billetto.se.')
+      en = sprinkle_entry("A", "beta.billetto.se", '88.80.188.143', 60, hz.name)
+      hz.add_or_update_hosted_zone_entry(en)
+
+      r42c = SprinkleDNS::MockClient.new([hz])
+      @sdns = SprinkleDNS::Client.new(r42c)
+
+      @sdns.entry('A', 'billetto.se', '88.80.80.80', 60)
+      @sdns.entry('A', 'beta.billetto.se', '88.80.80.80', 70)
+    end
+
+    it 'sprinkle! should return change_requests' do
+      _, change_requests = @sdns.sprinkle!
+
+      change_requests.each do |cr|
+        expect(cr.in_sync).to eq true
+        expect(cr.tries).to eq cr.tries_needed
+      end
+    end
+  end
+
   context 'record validation' do
     it 'should only allow valid string records' do
       valid_records = ['SOA','A','TXT','NS','CNAME','MX','NAPTR','PTR','SRV','SPF','AAAA']
