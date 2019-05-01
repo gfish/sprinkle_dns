@@ -86,23 +86,13 @@ Here is a table that shows the different configuration options:
 
 With `force` being set to `false` you will be asked whether or not you want to apply the changes:
 
-![force set to false](readme_files/force_false.svg)
+![force set to false](readme_files/force_false.png)
 
 ### `delete: true`
 
 With `delete` being set to `true` SprinkleDNS will delete **any** entries not being referenced, these will also show up in the diff (if it is enabled):
 
 ![delete true shows up in diffs](readme_files/delete_true_and_diff.png)
-
-### `interactive_progress: true`
-
-With `interactive_progress` set to `true`, you would see a bit more interactivity in your terminal:
-
-![example of interactive progress](readme_files/interactive_progress.svg)
-
-Compare that to when `interactive_progress` is set to `false`, the output will just append:
-
-![example of non-interactive progress](readme_files/non-interactive_progress.svg)
 
 ## Support for ALIAS-records
 
