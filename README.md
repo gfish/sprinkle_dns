@@ -92,7 +92,7 @@ With `force` being set to `false` you will be asked whether or not you want to a
 
 With `delete` being set to `true` SprinkleDNS will delete **any** entries not being referenced, these will also show up in the diff (if it is enabled):
 
-![delete true shows up in diffs](readme_files/delete_true_and_diff.svg)
+![delete true shows up in diffs](readme_files/delete_true_and_diff.png)
 
 ### `interactive_progress: true`
 
