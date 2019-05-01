@@ -89,7 +89,7 @@ module SprinkleDNS
       end
 
       unless @config.force?
-        changes = existing_hosted_zones.collect{|h| h.entries_to_change}.sum
+        changes = existing_hosted_zones.map{|h| SprinkleDNS::EntryPolicyService.new(h, @config)}.collect{|eps| eps.entries_to_change}.sum
         puts
         print "#{changes} changes to make. Continue? (y/N)"
         case gets.strip
