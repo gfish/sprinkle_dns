@@ -2,13 +2,15 @@ module SprinkleDNS::CLI
   class HostedZoneDiff
     Entry = Struct.new(:action, :type, :name, :value1, :value1_highlight, :value2, :value2_highlight, :hosted_zone)
 
-    def diff(hosted_zones)
+    def diff(hosted_zones, configuration)
       entries = []
 
       hosted_zones.each do |hosted_zone|
-        to_create = hosted_zone.entries_to_create
-        to_update = hosted_zone.entries_to_update
-        to_delete = hosted_zone.entries_to_delete
+        policy_service = SprinkleDNS::EntryPolicyService.new(hosted_zone, configuration)
+
+        to_create = policy_service.entries_to_create
+        to_update = policy_service.entries_to_update
+        to_delete = policy_service.entries_to_delete
 
         hosted_zone.entries.each do |entry|
           if to_create.include?(entry)

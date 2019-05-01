@@ -31,11 +31,13 @@ module SprinkleDNS
       hosted_zones
     end
 
-    def change_hosted_zones(hosted_zones, delete: false)
+    def change_hosted_zones(hosted_zones, configuration)
       change_requests = []
 
       hosted_zones.each do |hosted_zone|
-        if hosted_zone.compile_change_batch(delete: delete).any?
+        changes = EntryPolicyService.new(hosted_zone, configuration).compile
+
+        if changes.any?
           change_requests << MockChangeRequest.new(hosted_zone, 1, rand(3..15), false)
         else
           change_requests << MockChangeRequest.new(hosted_zone, 1, 1, true)

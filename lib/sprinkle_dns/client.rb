@@ -4,6 +4,7 @@ require 'sprinkle_dns/hosted_zone'
 require 'sprinkle_dns/hosted_zone_domain'
 require 'sprinkle_dns/hosted_zone_entry'
 require 'sprinkle_dns/hosted_zone_alias'
+require 'sprinkle_dns/entry_policy_service'
 
 require 'sprinkle_dns/cli/hosted_zone_diff'
 require 'sprinkle_dns/cli/interactive_change_request_printer'
@@ -78,7 +79,7 @@ module SprinkleDNS
       _, existing_hosted_zones = compare
 
       if @config.diff?
-        SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones).each do |line|
+        SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones, @config).each do |line|
           puts line.join(' ')
         end
       end
@@ -100,7 +101,7 @@ module SprinkleDNS
         end
       end
 
-      change_requests = @dns_provider.change_hosted_zones(existing_hosted_zones, delete: @config.delete?)
+      change_requests = @dns_provider.change_hosted_zones(existing_hosted_zones, @config)
       progress_printer = if @config.interactive_progress?
         SprinkleDNS::CLI::InteractiveChangeRequestPrinter.new
       else

@@ -122,6 +122,64 @@ RSpec.describe SprinkleDNS::Client do
     end
   end
 
+  context 'delete config option' do
+    before(:all) do
+      @hz01 = SprinkleDNS::HostedZone.new('colourful.co.uk.')
+
+      e1 = SprinkleDNS::HostedZoneEntry.new('A', 'updateme.colourful.co.uk.', Array.wrap('80.80.80.80'), 3600, @hz01.name)
+      e2 = SprinkleDNS::HostedZoneEntry.new('TXT', 'txt.colourful.co.uk.', %Q{"#{Time.now.to_i}"}, 60, @hz01.name)
+      e3 = SprinkleDNS::HostedZoneEntry.new('A', 'nochange.colourful.co.uk.', Array.wrap('80.80.80.80'), 60, @hz01.name)
+      e4 = SprinkleDNS::HostedZoneEntry.new('A', 'noref.colourful.co.uk.', Array.wrap('80.80.80.80'), 3600, @hz01.name)
+      e5 = SprinkleDNS::HostedZoneEntry.new('A', 'www1.colourful.co.uk.', Array.wrap('80.80.80.80'), 60, @hz01.name)
+      e6 = SprinkleDNS::HostedZoneEntry.new('A', 'www2.colourful.co.uk.', Array.wrap('80.80.80.80'), 60, @hz01.name)
+      e7 = SprinkleDNS::HostedZoneEntry.new('A', 'www3.colourful.co.uk.', Array.wrap('80.80.80.80'), 60, @hz01.name)
+
+      # We are emulating that these records are already live, mark them as persisted
+      [e1, e2, e3, e4, e5, e6, e7].each do |persisted|
+        persisted.persisted!
+        @hz01.resource_record_sets << persisted
+      end
+    end
+
+    it 'it should not list deletes if delete=false' do
+      client = SprinkleDNS::MockClient.new([@hz01])
+      sdns = SprinkleDNS::Client.new(client, dry_run: true, delete: false)
+
+      sdns.entry('A', 'updateme.colourful.co.uk', '90.90.90.90', 3601)
+      sdns.entry('A', 'addnew.colourful.co.uk', '90.90.90.90', 3601)
+      sdns.entry('TXT', 'txt.colourful.co.uk', %Q{"#{Time.now.to_i+1}"}, 60)
+      sdns.entry('A', 'nochange.colourful.co.uk.', Array.wrap('80.80.80.80'), 60)
+
+      existing_hosted_zones, _ = sdns.sprinkle!
+
+      expect(existing_hosted_zones.size).to eq 1
+
+      hosted_zone = existing_hosted_zones.first
+      policy_service = SprinkleDNS::EntryPolicyService.new(@hz01, sdns.config)
+      expect(policy_service.entries_to_delete.size).to eq 0
+      expect(policy_service.compile.select{|rrset| rrset[:action] == 'DELETE'}.count).to eq 0
+    end
+
+    it 'it should list deletes if delete=true' do
+      client = SprinkleDNS::MockClient.new([@hz01])
+      sdns = SprinkleDNS::Client.new(client, dry_run: true, delete: true)
+
+      sdns.entry('A', 'updateme.colourful.co.uk', '90.90.90.90', 3601)
+      sdns.entry('A', 'addnew.colourful.co.uk', '90.90.90.90', 3601)
+      sdns.entry('TXT', 'txt.colourful.co.uk', %Q{"#{Time.now.to_i+1}"}, 60)
+      sdns.entry('A', 'nochange.colourful.co.uk.', Array.wrap('80.80.80.80'), 60)
+
+      existing_hosted_zones, _ = sdns.sprinkle!
+
+      expect(existing_hosted_zones.size).to eq 1
+
+      hosted_zone = existing_hosted_zones.first
+      policy_service = SprinkleDNS::EntryPolicyService.new(@hz01, sdns.config)
+      expect(policy_service.entries_to_delete.size).to eq 4
+      expect(policy_service.compile.select{|rrset| rrset[:action] == 'DELETE'}.count).to eq 4
+    end
+  end
+
   context 'record validation' do
     it 'should only allow valid string records' do
       valid_records = ['SOA','A','TXT','NS','CNAME','MX','NAPTR','PTR','SRV','SPF','AAAA']

@@ -23,7 +23,7 @@ RSpec.describe SprinkleDNS::CLI::HostedZoneDiff do
 
     existing_hosted_zones, _ = sdns.sprinkle!
 
-    SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones).each do |line|
+    SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones, sdns.config).each do |line|
       puts line.join(' ')
     end
   end

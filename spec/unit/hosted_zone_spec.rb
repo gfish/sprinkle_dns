@@ -27,7 +27,7 @@ RSpec.describe SprinkleDNS::HostedZone do
   end
 
   context "compile_change_batch" do
-    it 'should correctly calculate a compile_change_batch' do
+    it 'should correctly calculate a change_batch' do
       hz = SprinkleDNS::HostedZone.new('test.billetto.com.')
 
       hze01 = sprinkle_entry('A', 'www.test.billetto.com.', '80.80.22.22', 60, 'test.billetto.com.')
@@ -38,7 +38,9 @@ RSpec.describe SprinkleDNS::HostedZone do
         hz.add_or_update_hosted_zone_entry(hze)
       end
 
-      expect(hz.compile_change_batch).to eq([
+      policy = SprinkleDNS::EntryPolicyService.new(hz, SprinkleDNS::Config.new)
+
+      expect(policy.compile).to eq([
         {:action=>"CREATE", :resource_record_set=>{:name=>"www.test.billetto.com.", :type=>"A", :ttl=>60, :resource_records=>[{:value=>"80.80.22.22"}]}},
         {:action=>"CREATE", :resource_record_set=>{:name=>"foo.test.billetto.com.", :type=>"A", :ttl=>70, :resource_records=>[{:value=>"80.80.23.23"}]}},
         {:action=>"CREATE", :resource_record_set=>{:name=>"bar.test.billetto.com.", :type=>"A", :ttl=>80, :resource_records=>[{:value=>"80.80.24.24"}]}},
@@ -68,16 +70,24 @@ RSpec.describe SprinkleDNS::HostedZone do
         @existing_hz = existing_hzs.first
       end
 
-      it 'lol' do
-        expect(@existing_hz.entries_to_delete.size).to eq 1
-        delete_entry = @existing_hz.entries_to_delete.first
+      it 'should include unreferenced entries in deleted list if delete=true' do
+        policy = SprinkleDNS::EntryPolicyService.new(@existing_hz, SprinkleDNS::Config.new(delete: true))
+
+        expect(policy.entries_to_delete.size).to eq 1
+        delete_entry = policy.entries_to_delete.first
         expect(delete_entry.type).to eq 'A'
         expect(delete_entry.name).to eq 'noref.unreferenced.com.'
 
-        expect(@existing_hz.compile_change_batch).to eq []
-        expect(@existing_hz.compile_change_batch(delete: true)).to eq [
+        expect(policy.compile).to eq [
           {:action=>"DELETE", :resource_record_set=>{:name=>"noref.unreferenced.com.", :type=>"A", :ttl=>80, :resource_records=>[{:value=>"127.0.0.1"}]}}
         ]
+      end
+
+      it 'should not include unreferenced entries in deleted list if delete=false' do
+        policy = SprinkleDNS::EntryPolicyService.new(@existing_hz, SprinkleDNS::Config.new(delete: false))
+
+        expect(policy.entries_to_delete.size).to eq 0
+        expect(policy.compile).to eq []
       end
     end
 
@@ -144,11 +154,30 @@ RSpec.describe SprinkleDNS::HostedZone do
         @existing_hz = existing_hzs.first
       end
 
-      it "should have a correct number of changes" do
-        expect(@existing_hz.entries_to_create.size).to eq 4
-        expect(@existing_hz.entries_to_update.size).to eq 4
-        expect(@existing_hz.entries_to_delete.size).to eq 2
-        expect(@existing_hz.entries_not_touched.size).to eq 2
+      it "should have a correct number of changes when delete=true" do
+        policy_service = SprinkleDNS::EntryPolicyService.new(@existing_hz, SprinkleDNS::Config.new(delete: true))
+
+        expect(policy_service.entries_to_create.size).to   eq 4
+        expect(policy_service.entries_to_update.size).to   eq 4
+        expect(policy_service.entries_to_delete.size).to   eq 2
+        expect(policy_service.entries_not_touched.size).to eq 2
+        expect(@existing_hz.entries.size).to               eq 4+4+2+2 # 12
+
+        expect(policy_service.entries_to_delete.map(&:name)).to include('noref.test.billetto.com.')
+        expect(policy_service.entries_to_delete.map(&:name)).to include('noraf.test.billetto.com.')
+      end
+
+      it "should have a correct number of changes when delete=false" do
+        policy_service = SprinkleDNS::EntryPolicyService.new(@existing_hz, SprinkleDNS::Config.new(delete: false))
+
+        expect(policy_service.entries_to_create.size).to   eq 4
+        expect(policy_service.entries_to_update.size).to   eq 4
+        expect(policy_service.entries_to_delete.size).to   eq 0
+        expect(policy_service.entries_not_touched.size).to eq 4
+        expect(@existing_hz.entries.size).to               eq 4+4+0+4 # 12
+
+        expect(policy_service.entries_not_touched.map(&:name)).to include('noref.test.billetto.com.')
+        expect(policy_service.entries_not_touched.map(&:name)).to include('noraf.test.billetto.com.')
       end
 
       context "references should be correct for" do
@@ -197,24 +226,32 @@ RSpec.describe SprinkleDNS::HostedZone do
 
       context "entries should be correctly set for" do
         it 'entries' do
-          expect(@existing_hz.entries_to_create.map(&:name)).to include('www.test.billetto.com.', 'foo.test.billetto.com.')
-          expect(@existing_hz.entries_to_update.map(&:name)).to include('bar.test.billetto.com.')
-          expect(@existing_hz.entries_to_delete.map(&:name)).to include('noref.test.billetto.com.')
+          policy_service = SprinkleDNS::EntryPolicyService.new(@existing_hz, SprinkleDNS::Config.new(delete: true))
+
+          expect(policy_service.entries_to_create.map(&:name)).to include('www.test.billetto.com.', 'foo.test.billetto.com.')
+          expect(policy_service.entries_to_update.map(&:name)).to include('bar.test.billetto.com.')
+          expect(policy_service.entries_to_delete.map(&:name)).to include('noref.test.billetto.com.')
         end
 
         it 'aliases' do
-          expect(@existing_hz.entries_to_create.map(&:name)).to include('wap.test.billetto.com.', 'woo.test.billetto.com.')
-          expect(@existing_hz.entries_to_update.map(&:name)).to include('war.test.billetto.com.')
-          expect(@existing_hz.entries_to_delete.map(&:name)).to include('noraf.test.billetto.com.')
+          policy_service = SprinkleDNS::EntryPolicyService.new(@existing_hz, SprinkleDNS::Config.new(delete: true))
+
+          expect(policy_service.entries_to_create.map(&:name)).to include('wap.test.billetto.com.', 'woo.test.billetto.com.')
+          expect(policy_service.entries_to_update.map(&:name)).to include('war.test.billetto.com.')
+          expect(policy_service.entries_to_delete.map(&:name)).to include('noraf.test.billetto.com.')
         end
 
         it "mixed" do
-          expect(@existing_hz.entries_to_update.map(&:name)).to include('entry-to-alias.test.billetto.com.', 'alias-to-entry.test.billetto.com.')
+          policy_service = SprinkleDNS::EntryPolicyService.new(@existing_hz, SprinkleDNS::Config.new(delete: true))
+
+          expect(policy_service.entries_to_update.map(&:name)).to include('entry-to-alias.test.billetto.com.', 'alias-to-entry.test.billetto.com.')
         end
       end
 
       it "should calculate complicated compile_change_batch" do
-        expect(@existing_hz.compile_change_batch).to eq [
+        policy_service = SprinkleDNS::EntryPolicyService.new(@existing_hz, SprinkleDNS::Config.new(delete: false))
+
+        expect(policy_service.compile).to eq [
           {:action=>"UPSERT", :resource_record_set=>{:name=>"bar.test.billetto.com.", :type=>"A", :ttl=>90, :resource_records=>[{:value=>"82.82.26.26"}]}},
           {:action=>"UPSERT", :resource_record_set=>{:name=>"war.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD6", :dns_name=>"dualstack.mothership-test-elb-444444444.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},
           {:action=>"UPSERT", :resource_record_set=>{:name=>"entry-to-alias.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD5", :dns_name=> "dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},

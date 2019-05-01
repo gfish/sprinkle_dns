@@ -59,11 +59,11 @@ module SprinkleDNS
       hosted_zones
     end
 
-    def change_hosted_zones(hosted_zones, delete: false)
+    def change_hosted_zones(hosted_zones, configuration)
       change_requests = []
 
       hosted_zones.each do |hosted_zone|
-        changes = hosted_zone.compile_change_batch(delete: delete)
+        changes = EntryPolicyService.new(hosted_zone, configuration).compile
 
         if changes.any?
           change_request = @api_client.change_resource_record_sets({
@@ -133,7 +133,7 @@ module SprinkleDNS
           end
 
           existing_resource_record_sets << entry
-          entry.persisted!
+          entry.persisted! # TODO test if all entries from are persisted = true
         end
       end
 
