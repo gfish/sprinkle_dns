@@ -53,6 +53,21 @@ sdns.sprinkle!
 
 ## Configuration
 
+You can configure the `SprinkleDNS::Client` like so:
+
+```ruby
+client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
+sdns = SprinkleDNS::Client.new(client,
+  dry_run: false,
+  diff: true,
+  force: true,
+  delete: false,
+  interactive_progress: true,
+)
+```
+
+Here is a table that shows the different configuration options:
+
 | Name                   | Description                                                                                               | Default value |
 |------------------------|-----------------------------------------------------------------------------------------------------------|---------------|
 | `dry_run`              | Do not make any changes, just compare and exit, useful with `diff: true`.                                 | `false`       |
