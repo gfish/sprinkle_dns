@@ -76,6 +76,33 @@ Here is a table that shows the different configuration options:
 | `delete`               | Specifies whether unreferenced entries should be deleted.                                                 | `false`       |
 | `interactive_progress` | Shows interactive progress whilst changes are being applied, nice for your terminal, not for your CI-job. | `true`        |
 
+### `dry_run` and `diff`
+
+`dry_run` is useful combined with `diff` because it will let you see the changes in a safe manner without any changes being applied:
+
+![dry_run and diff](readme_files/dry_run_and_diff.png)
+
+### `force: false`
+
+With `force` being set to `false` you will be asked whether or not you want to apply the changes:
+
+![force set to false](readme_files/force_false.svg)
+
+### `delete: true`
+
+With `delete` being set to `true` SprinkleDNS will delete **any** entries not being referenced, these will also show up in the diff (if it is enabled):
+
+![delete true shows up in diffs](readme_files/delete_true_and_diff.svg)
+
+### `interactive_progress: true`
+
+With `interactive_progress` set to `true`, you would see a bit more interactivity in your terminal:
+
+![example of interactive progress](readme_files/interactive_progress.svg)
+
+Compare that to when `interactive_progress` is set to `false`, the output will just append:
+
+![example of non-interactive progress](readme_files/non-interactive_progress.svg)
 
 ## Support for ALIAS-records
 
