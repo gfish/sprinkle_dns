@@ -6,7 +6,7 @@ A diff-based way of managing DNS for people with lots of domains for AWS Route53
 
 ## How
 
-Use plain old Ruby to define your DNS settings:
+Use plain old Ruby to define your DNS configuration:
 
 ```ruby
 require 'sprinkle_dns'
@@ -20,7 +20,7 @@ sdns.entry('A', 'staging.billetto.com', '88.80.188.143', 360)
 sdns.sprinkle!
 ```
 
-Or a more advanced example:
+Or a more advanced example using loops and interpolation:
 
 ```ruby
 require 'sprinkle_dns'
@@ -50,6 +50,17 @@ sdns.entry('A', 'billetto.com', '89.81.189.143', 360)
 
 sdns.sprinkle!
 ```
+
+## Configuration
+
+| Name                   | Description                                                                                               | Default value |
+|------------------------|-----------------------------------------------------------------------------------------------------------|---------------|
+| `dry_run`              | Do not make any changes, just compare and exit, useful with `diff: true`.                                 | `false`       |
+| `diff`                 | Prints a diff to list the changes that are going to be made.                                              | `true`        |
+| `force`                | Do not ask before changes are made, just apply.                                                           | `true`        |
+| `delete`               | Specifies whether unreferenced entries should be deleted.                                                 | `false`       |
+| `interactive_progress` | Shows interactive progress whilst changes are being applied, nice for your terminal, not for your CI-job. | `true`        |
+
 
 ## Support for ALIAS-records
 
