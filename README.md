@@ -123,6 +123,11 @@ sdns.sprinkle!
 
 This gem uses the following permissions:
 
+- `route53:ListResourceRecordSets`,
+- `route53:ChangeResourceRecordSets`.
+- `route53:GetChange`.
+- `route53:ListHostedZones`.
+
 `route53:ListResourceRecordSets` to read records for a hosted zone, `route53:ChangeResourceRecordSets` to change records for a hosted zone, `route53:GetChange` for reading when a change have been applied, `route53:ListHostedZones` for getting a list of hosted zones.
 
 For a "locked down" policy you can use this:
@@ -165,15 +170,7 @@ Or you can allow it for all of your hosted zones:
             "Effect": "Allow",
             "Action": [
                 "route53:ListResourceRecordSets",
-                "route53:ChangeResourceRecordSets"
-            ],
-            "Resource": [
-                "*"
-            ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
+                "route53:ChangeResourceRecordSets",
                 "route53:GetChange",
                 "route53:ListHostedZones"
             ],
