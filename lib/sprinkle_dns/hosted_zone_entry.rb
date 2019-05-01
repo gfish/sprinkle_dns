@@ -68,6 +68,7 @@ module SprinkleDNS
         @changed_ttl   = true
       end
 
+      # TODO test this
       if @changed_value || @changed_ttl
         @new_entry = new_entry
       end
