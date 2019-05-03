@@ -1,6 +1,6 @@
 module SprinkleDNS::CLI
   class HostedZoneDiff
-    Entry = Struct.new(:action, :type, :name, :value1, :value1_highlight, :value2, :value2_highlight, :hosted_zone)
+    Entry = Struct.new(:action, :type, :type_highlight, :name, :name_highlight, :value1, :value1_highlight, :value2, :value2_highlight, :hosted_zone)
 
     def diff(hosted_zones, configuration)
       entries = []
@@ -19,8 +19,8 @@ module SprinkleDNS::CLI
             old_entry = entry
             new_entry = entry.new_entry
 
-            entries << entry_to_struct('-', old_entry, hosted_zone)
-            entries << entry_to_struct('+', new_entry, hosted_zone, old_entry)
+            entries << entry_to_struct('u-', old_entry, hosted_zone)
+            entries << entry_to_struct('u+', new_entry, hosted_zone, old_entry)
           elsif to_delete.include?(entry)
             entries << entry_to_struct('-', entry, hosted_zone)
           else
@@ -50,11 +50,19 @@ module SprinkleDNS::CLI
           ->(text) { text }
         end
 
-        information = [
-          e.action,
-          e.type,
-          e.name,
-        ].map{|i| colour_mod.call(i) }
+        information = [colour_mod.call(e.action)]
+
+        information << if e.type_highlight
+          colour_mod_highlight.call(e.type)
+        else
+          colour_mod.call(e.type)
+        end
+
+        information << if e.name_highlight
+          colour_mod_highlight.call(e.name)
+        else
+          colour_mod.call(e.name)
+        end
 
         information << if e.value1_highlight
           colour_mod_highlight.call(e.value1)
@@ -106,7 +114,22 @@ module SprinkleDNS::CLI
     end
 
     def entry_to_struct(action, entry, hosted_zone, parent_entry = nil)
-      value1_highlight = if parent_entry
+      type_highlight, name_highlight, value1_highlight, value2_highlight = if !parent_entry && ['+', '-'].include?(action)
+        [true, true, true, true]
+      else
+        [false, false, nil, nil]
+      end
+
+      action = case action
+      when 'u-'
+        '-'
+      when 'u+'
+        '+'
+      else
+        action
+      end
+
+      value1_highlight ||= if parent_entry
         case parent_entry
         when SprinkleDNS::HostedZoneEntry
           parent_entry.changed_value
@@ -122,7 +145,7 @@ module SprinkleDNS::CLI
         end
       end
 
-      value2_highlight = if parent_entry
+      value2_highlight ||= if parent_entry
         case parent_entry
         when SprinkleDNS::HostedZoneEntry
           parent_entry.changed_ttl
@@ -140,12 +163,16 @@ module SprinkleDNS::CLI
 
       case entry
       when SprinkleDNS::HostedZoneEntry
-        Entry.new(action, entry.type, entry.name,
+        Entry.new(action,
+                  entry.type, type_highlight,
+                  entry.name, name_highlight,
                   entry.value, value1_highlight,
                   entry.ttl, value2_highlight,
                   hosted_zone.name)
       when SprinkleDNS::HostedZoneAlias
-        Entry.new(action, entry.type, entry.name,
+        Entry.new(action,
+                  entry.type, type_highlight,
+                  entry.name, name_highlight,
                   entry.target_hosted_zone_id, value1_highlight,
                   entry.target_dns_name, value2_highlight,
                   hosted_zone.name)
