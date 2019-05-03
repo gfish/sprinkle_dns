@@ -11,6 +11,7 @@ module EntryHelpers
 
   def sprinkle_alias(type, name, hosted_zone_id, dns_name, hosted_zone_name = nil)
     name = zonify!(name)
+    dns_name = zonify!(dns_name)
 
     SprinkleDNS::HostedZoneAlias.new(type, name, hosted_zone_id, dns_name, hosted_zone_name)
   end

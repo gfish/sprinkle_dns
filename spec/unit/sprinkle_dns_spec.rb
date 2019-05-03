@@ -67,7 +67,7 @@ RSpec.describe SprinkleDNS::Client do
       rrs = hz.resource_record_sets.select{|rrs| rrs.type == 'A' && rrs.name == 'billetto.at.'}.first
 
       expect(rrs.target_hosted_zone_id).to eq 'X317JYRZR1TBD5'
-      expect(rrs.target_dns_name).to eq 'triplestack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com'
+      expect(rrs.target_dns_name).to eq 'triplestack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com.'
     end
 
     it 'should allow overwrites of an a-record with an alias' do
@@ -81,7 +81,7 @@ RSpec.describe SprinkleDNS::Client do
       rrs = hz.resource_record_sets.select{|rrs| rrs.type == 'A' && rrs.name == 'billetto.pl.'}.first
 
       expect(rrs.target_hosted_zone_id).to eq 'Z215JYRZR1TBD5'
-      expect(rrs.target_dns_name).to eq 'dualstack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com'
+      expect(rrs.target_dns_name).to eq 'dualstack.mothership-prod-elb-546580691.eu-central-1.elb.amazonaws.com.'
     end
 
     it 'should allow overwrites of an alias with an a-record' do

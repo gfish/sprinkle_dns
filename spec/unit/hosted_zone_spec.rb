@@ -253,13 +253,13 @@ RSpec.describe SprinkleDNS::HostedZone do
 
         expect(policy_service.compile).to eq [
           {:action=>"UPSERT", :resource_record_set=>{:name=>"bar.test.billetto.com.", :type=>"A", :ttl=>90, :resource_records=>[{:value=>"82.82.26.26"}]}},
-          {:action=>"UPSERT", :resource_record_set=>{:name=>"war.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD6", :dns_name=>"dualstack.mothership-test-elb-444444444.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},
-          {:action=>"UPSERT", :resource_record_set=>{:name=>"entry-to-alias.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD5", :dns_name=> "dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},
+          {:action=>"UPSERT", :resource_record_set=>{:name=>"war.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD6", :dns_name=>"dualstack.mothership-test-elb-444444444.eu-central-1.elb.amazonaws.com.", :evaluate_target_health=>false}}},
+          {:action=>"UPSERT", :resource_record_set=>{:name=>"entry-to-alias.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD5", :dns_name=> "dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com.", :evaluate_target_health=>false}}},
           {:action=>"UPSERT", :resource_record_set=>{:name=>"alias-to-entry.test.billetto.com.", :type=>"A", :ttl=>80, :resource_records=>[{:value=>"80.80.24.24"}]}},
           {:action=>"CREATE", :resource_record_set=>{:name=>"www.test.billetto.com.", :type=>"A", :ttl=>60, :resource_records=>[{:value=>"80.80.22.22"}]}},
           {:action=>"CREATE", :resource_record_set=>{:name=>"foo.test.billetto.com.", :type=>"A", :ttl=>80, :resource_records=>[{:value=>"81.81.24.24"}]}},
-          {:action=>"CREATE", :resource_record_set=>{:name=>"wap.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD5", :dns_name=>"dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},
-          {:action=>"CREATE", :resource_record_set=>{:name=>"woo.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD6", :dns_name=>"dualstack.mothership-test-elb-444444444.eu-central-1.elb.amazonaws.com", :evaluate_target_health=>false}}},
+          {:action=>"CREATE", :resource_record_set=>{:name=>"wap.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD5", :dns_name=>"dualstack.mothership-test-elb-546580691.eu-central-1.elb.amazonaws.com.", :evaluate_target_health=>false}}},
+          {:action=>"CREATE", :resource_record_set=>{:name=>"woo.test.billetto.com.", :type=>"A", :alias_target=>{:hosted_zone_id=>"Z215JYRZR1TBD6", :dns_name=>"dualstack.mothership-test-elb-444444444.eu-central-1.elb.amazonaws.com.", :evaluate_target_health=>false}}},
         ]
       end
     end

@@ -37,6 +37,7 @@ module SprinkleDNS
     def alias(type, name, hosted_zone_id, dns_name, hosted_zone = nil)
       hosted_zone = find_or_init_hosted_zone(name, hosted_zone)
       name        = zonify!(name)
+      dns_name    = zonify!(dns_name)
 
       hosted_zone.add_or_update_hosted_zone_entry(HostedZoneAlias.new(type, name, hosted_zone_id, dns_name, hosted_zone.name))
     end
