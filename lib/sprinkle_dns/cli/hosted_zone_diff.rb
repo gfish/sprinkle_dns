@@ -38,7 +38,7 @@ module SprinkleDNS::CLI
         when '-'
           ->(text) { "#{fg(*red)}#{text}#{reset}" }
         when nil
-          ->(text) { text }
+          ->(text) { "#{text}" }
         end
 
         colour_mod_highlight = case e.action
@@ -47,7 +47,7 @@ module SprinkleDNS::CLI
         when '-'
           ->(text) { "#{fg(*black)}#{bg(*red)}#{text}#{reset}" }
         when nil
-          ->(text) { text }
+          ->(text) { "#{text}" }
         end
 
         information = [colour_mod.call(e.action)]
@@ -76,7 +76,7 @@ module SprinkleDNS::CLI
           colour_mod.call(e.value2)
         end
 
-        coloured_entries << information.compact
+        coloured_entries << information.compact.delete_if(&:empty?)
       end
 
       coloured_entries
