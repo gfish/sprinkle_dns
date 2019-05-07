@@ -1,6 +1,6 @@
 module SprinkleDNS
   class Config
-    def initialize(dry_run: false, diff: true, force: true, delete: false, interactive_progress: true)
+    def initialize(dry_run: true, diff: true, force: false, delete: false, interactive_progress: true)
       @dry_run = dry_run
       @diff = diff
       @force = force

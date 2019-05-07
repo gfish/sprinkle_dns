@@ -70,9 +70,9 @@ Here is a table that shows the different configuration options:
 
 | Name                   | Description                                                                                               | Default value |
 |------------------------|-----------------------------------------------------------------------------------------------------------|---------------|
-| `dry_run`              | Do not make any changes, just compare and exit, useful with `diff: true`.                                 | `false`       |
+| `dry_run`              | Do not make any changes, just compare and exit, useful with `diff: true`.                                 | `true`       |
 | `diff`                 | Prints a diff to list the changes that are going to be made.                                              | `true`        |
-| `force`                | Do not ask before changes are made, just apply.                                                           | `true`        |
+| `force`                | Do not ask before changes are made, just apply.                                                           | `false`        |
 | `delete`               | Specifies whether unreferenced entries should be deleted.                                                 | `false`       |
 | `interactive_progress` | Shows interactive progress whilst changes are being applied, nice for your terminal, not for your CI-job. | `true`        |
 
