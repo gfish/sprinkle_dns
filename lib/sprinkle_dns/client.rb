@@ -52,29 +52,6 @@ module SprinkleDNS
     def compare
       existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
 
-      missing_hosted_zones = existing_hosted_zones.map(&:name) - @wanted_hosted_zones.map(&:name)
-
-      # Make sure we have the same amount of zones
-      unless missing_hosted_zones.any?
-        error_message = []
-        error_message << "We found #{existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones.size} was wanted, exiting!"
-        error_message << ""
-
-        if existing_hosted_zones.any?
-          error_message << "Existing:"
-          existing_hosted_zones.map(&:name).sort.each do |ehz|
-            error_message << "- #{ehz}"
-          end
-        end
-
-        error_message << "Wanted:"
-        @wanted_hosted_zones.map(&:name).sort.each do |whz|
-          error_message << "- #{whz}"
-        end
-
-        raise error_message.join("\n")
-      end
-
       # Tell our existing hosted zones about our wanted changes
       existing_hosted_zones.each do |existing_hosted_zone|
         wanted_hosted_zone = @wanted_hosted_zones.find{|whz| whz.name == existing_hosted_zone.name}
@@ -88,10 +65,17 @@ module SprinkleDNS
     end
 
     def sprinkle!
-      _, existing_hosted_zones = compare
+      wanted_hosted_zones, existing_hosted_zones = compare
+
+      missing_hosted_zone_names = wanted_hosted_zones.map(&:name) - existing_hosted_zones.map(&:name)
+      missing_hosted_zones = wanted_hosted_zones.select{|whz| missing_hosted_zone_names.include?(whz.name)}
+
+      unless @config.create_hosted_zones? && missing_hosted_zones
+        missing_hosted_zones_error(missing_hosted_zones)
+      end
 
       if @config.diff?
-        SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones, @config).each do |line|
+        SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones, missing_hosted_zones, @config).each do |line|
           puts line.join(' ')
         end
       end
@@ -141,6 +125,17 @@ module SprinkleDNS
       end
 
       wanted_hosted_zone
+    end
+
+    def missing_hosted_zones_error(missing_hosted_zones)
+      error_message = []
+      error_message << "There are #{missing_hosted_zones.size} missing hosted zones:"
+
+      missing_hosted_zones.map(&:name).sort.each do |whz|
+        error_message << "- #{whz}"
+      end
+
+      raise error_message.join("\n")
     end
   end
 
