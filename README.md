@@ -113,14 +113,34 @@ sdns.sprinkle!
 
 This gem uses the following permissions:
 
-- `route53:ListResourceRecordSets`,
-- `route53:ChangeResourceRecordSets`.
-- `route53:GetChange`.
-- `route53:ListHostedZones`.
+- `route53:ListHostedZones`, for getting the list of hosted zones.
+- `route53:ListResourceRecordSets`, to read the records for a hosted zone.
+- `route53:ChangeResourceRecordSets`, to change records for a hosted zone.
+- `route53:GetChange`, for reading when a change have been applied.
 
-`route53:ListResourceRecordSets` to read records for a hosted zone, `route53:ChangeResourceRecordSets` to change records for a hosted zone, `route53:GetChange` for reading when a change have been applied, `route53:ListHostedZones` for getting a list of hosted zones.
+You can allow it for all of your hosted zones:
 
-For a "locked down" policy you can use this:
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "route53:ListResourceRecordSets",
+                "route53:ChangeResourceRecordSets",
+                "route53:GetChange",
+                "route53:ListHostedZones"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+```
+
+For a more "locked down" policy you can use this (remember to update the `resource` array):
 
 ```json
 {
@@ -139,28 +159,6 @@ For a "locked down" policy you can use this:
         {
             "Effect": "Allow",
             "Action": [
-                "route53:GetChange",
-                "route53:ListHostedZones"
-            ],
-            "Resource": [
-                "*"
-            ]
-        }
-    ]
-}
-```
-
-Or you can allow it for all of your hosted zones:
-
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "route53:ListResourceRecordSets",
-                "route53:ChangeResourceRecordSets",
                 "route53:GetChange",
                 "route53:ListHostedZones"
             ],
