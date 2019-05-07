@@ -4,11 +4,13 @@ require 'sprinkle_dns/providers/mock_client'
 hz01 = SprinkleDNS::HostedZone.new('colourful.co.uk.')
 pe01 = SprinkleDNS::HostedZoneEntry.new('A', 'noref.colourful.co.uk.', Array.wrap('80.80.80.80'), 3600, hz01.name)
 pe02 = SprinkleDNS::HostedZoneEntry.new('A', 'updateme.colourful.co.uk.', Array.wrap('80.80.80.80'), 3600, hz01.name)
-pe03 = SprinkleDNS::HostedZoneEntry.new('TXT', 'txt.colourful.co.uk.', %Q{"#{Time.now.to_i}"}, 60, hz01.name)
-pe04 = SprinkleDNS::HostedZoneEntry.new('A', 'nochange.colourful.co.uk.', Array.wrap('80.80.80.80'), 60, hz01.name)
+
+#pe03 = SprinkleDNS::HostedZoneEntry.new('TXT', 'txt.colourful.co.uk.', %Q{"#{Time.now.to_i}"}, 60, hz01.name)
+pe04 = SprinkleDNS::HostedZoneEntry.new('A', 'unchanged.colourful.co.uk.', Array.wrap('80.80.80.80'), 60, hz01.name)
 sleep(1)
 # We are emulating that these records are already live, mark them as persisted
-[pe01, pe02, pe03, pe04].each do |persisted|
+#[pe01, pe02, pe03, pe04].each do |persisted|
+[pe01, pe02, pe04].each do |persisted|
   persisted.persisted!
   hz01.resource_record_sets << persisted
 end
@@ -37,10 +39,13 @@ sleep(1)
   hz03.resource_record_sets << persisted
 end
 
-client = SprinkleDNS::MockClient.new([hz02, hz01, hz03])
-sdns = SprinkleDNS::Client.new(client, delete: true)
+client = SprinkleDNS::MockClient.new([hz01, hz02, hz03])
+sdns = SprinkleDNS::Client.new(client, force: true, diff: true, delete: true, interactive_progress: true)
 
-sdns.entry('A', 'colourful.co.uk', '90.90.90.90', 3601)
+sdns.entry('A', 'colourful.co.uk', '90.90.90.90', 3600)
+sdns.entry('A', 'updateme.colourful.co.uk', '90.90.90.90', 3600)
+sdns.entry('A', 'unchanged.colourful.co.uk', '80.80.80.80', 60)
+sdns.entry('TXT', 'txt.colourful.co.uk', %Q{"#{Time.now.to_i+1}"}, 60)
 sdns.entry('A', 'colorful.com.', '80.80.80.80', 3601)
 sdns.entry('A', 'kolorowy.pl.', '80.80.80.80', 3601)
 
