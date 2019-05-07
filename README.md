@@ -118,6 +118,10 @@ This gem uses the following permissions to manage hosted zones:
 - `route53:ChangeResourceRecordSets`, to change records for a hosted zone.
 - `route53:GetChange`, for reading when a change have been applied.
 
+Additionally, you can consider adding the following permissions:
+
+- `route53:CreateHostedZone`, for allowing the gem to create hosted zones.
+
 You can allow it for all of your hosted zones:
 
 ```json

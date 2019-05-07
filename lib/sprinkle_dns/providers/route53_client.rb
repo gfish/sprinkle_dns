@@ -1,4 +1,5 @@
 require 'aws-sdk-route53'
+require 'sprinkledns/version'
 
 module SprinkleDNS
   Route53ChangeRequest = Struct.new(:hosted_zone, :change_info_id, :tries, :in_sync)
@@ -57,6 +58,23 @@ module SprinkleDNS
       end
 
       hosted_zones
+    end
+
+    def create_hosted_zones(hosted_zones)
+      change_requests = []
+
+      hosted_zones.each do |hosted_zone|
+        change_request = @api_client.create_hosted_zone({
+          name: hosted_zone.name,
+          caller_reference: "#{hosted_zone.name}.#{Time.now.to_i}",
+          hosted_zone_config: {
+            comment: "Created by SprinkleDNS #{SprinkleDNS::VERSION}",
+          },
+        })
+        change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
+      end
+
+      change_requests
     end
 
     def change_hosted_zones(hosted_zones, configuration)

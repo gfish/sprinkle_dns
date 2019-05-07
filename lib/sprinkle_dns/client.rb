@@ -45,8 +45,10 @@ module SprinkleDNS
     def compare
       existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
 
+      missing_hosted_zones = existing_hosted_zones.map(&:name) - @wanted_hosted_zones.map(&:name)
+
       # Make sure we have the same amount of zones
-      unless existing_hosted_zones.map(&:name) - @wanted_hosted_zones.map(&:name) == []
+      unless missing_hosted_zones.any?
         error_message = []
         error_message << "We found #{existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones} was described, exiting!"
         error_message << ""

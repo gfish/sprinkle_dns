@@ -31,6 +31,16 @@ module SprinkleDNS
       hosted_zones
     end
 
+    def create_hosted_zones(hosted_zones)
+      change_requests = []
+
+      hosted_zones.each do |hosted_zone|
+        change_requests << MockChangeRequest.new(hosted_zone, 1, rand(3..15), false)
+      end
+
+      change_requests
+    end
+
     def change_hosted_zones(hosted_zones, configuration)
       change_requests = []
 
