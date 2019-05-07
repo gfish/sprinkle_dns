@@ -57,12 +57,14 @@ module SprinkleDNS
       # Make sure we have the same amount of zones
       unless missing_hosted_zones.any?
         error_message = []
-        error_message << "We found #{existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones} was wanted, exiting!"
+        error_message << "We found #{existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones.size} was wanted, exiting!"
         error_message << ""
 
-        error_message << "Existing:"
-        existing_hosted_zones.map(&:name).sort.each do |ehz|
-          error_message << "- #{ehz}"
+        if existing_hosted_zones.any?
+          error_message << "Existing:"
+          existing_hosted_zones.map(&:name).sort.each do |ehz|
+            error_message << "- #{ehz}"
+          end
         end
 
         error_message << "Wanted:"
