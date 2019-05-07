@@ -4,7 +4,7 @@ module SprinkleDNS
   class MockClient
     attr_reader :hosted_zones
 
-    def initialize(hosted_zones)
+    def initialize(hosted_zones = [])
       @hosted_zones = hosted_zones
     end
 

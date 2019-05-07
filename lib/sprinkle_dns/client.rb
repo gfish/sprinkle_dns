@@ -17,8 +17,15 @@ module SprinkleDNS
   class Client
     attr_reader :wanted_hosted_zones, :config
 
-    def initialize(dns_provider, dry_run: false, diff: true, force: true, delete: false, interactive_progress: true)
-      @config = SprinkleDNS::Config.new(dry_run: dry_run, diff: diff, force: force, delete: delete, interactive_progress: interactive_progress)
+    def initialize(dns_provider, dry_run: false, diff: true, force: true, delete: false, interactive_progress: true, create_hosted_zones: false)
+      @config = SprinkleDNS::Config.new(
+        dry_run: dry_run,
+        diff: diff,
+        orce: force,
+        delete: delete,
+        interactive_progress: interactive_progress,
+        create_hosted_zones: create_hosted_zones,
+      )
       @dns_provider = dns_provider
       @wanted_hosted_zones = []
     end
@@ -50,7 +57,7 @@ module SprinkleDNS
       # Make sure we have the same amount of zones
       unless missing_hosted_zones.any?
         error_message = []
-        error_message << "We found #{existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones} was described, exiting!"
+        error_message << "We found #{existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones} was wanted, exiting!"
         error_message << ""
 
         error_message << "Existing:"
@@ -58,7 +65,7 @@ module SprinkleDNS
           error_message << "- #{ehz}"
         end
 
-        error_message << "Described:"
+        error_message << "Wanted:"
         @wanted_hosted_zones.map(&:name).sort.each do |whz|
           error_message << "- #{whz}"
         end

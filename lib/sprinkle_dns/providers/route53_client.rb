@@ -1,5 +1,5 @@
 require 'aws-sdk-route53'
-require 'sprinkledns/version'
+require 'sprinkle_dns/version'
 
 module SprinkleDNS
   Route53ChangeRequest = Struct.new(:hosted_zone, :change_info_id, :tries, :in_sync)
