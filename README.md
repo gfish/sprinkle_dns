@@ -111,7 +111,7 @@ sdns.sprinkle!
 
 ## Amazon policy
 
-This gem uses the following permissions:
+This gem uses the following permissions to manage hosted zones:
 
 - `route53:ListHostedZones`, for getting the list of hosted zones.
 - `route53:ListResourceRecordSets`, to read the records for a hosted zone.
