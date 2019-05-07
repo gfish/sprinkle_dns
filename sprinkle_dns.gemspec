@@ -17,6 +17,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   gem.require_paths = ["lib"]
 
+  gem.required_ruby_version = ">= 2.4.0"
   gem.add_runtime_dependency 'aws-sdk-route53', '~> 1.21'
 
   gem.add_development_dependency "rspec"

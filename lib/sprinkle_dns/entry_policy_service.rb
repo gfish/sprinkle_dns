@@ -32,7 +32,7 @@ module SprinkleDNS
     end
 
     def entries_to_change
-      [entries_to_create, entries_to_update, entries_to_delete].map(&:size).inject(:+)
+      [entries_to_create, entries_to_update, entries_to_delete].sum(&:size)
     end
 
     def entries_to_change?
