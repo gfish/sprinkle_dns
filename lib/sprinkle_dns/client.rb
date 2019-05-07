@@ -21,7 +21,7 @@ module SprinkleDNS
       @config = SprinkleDNS::Config.new(
         dry_run: dry_run,
         diff: diff,
-        orce: force,
+        force: force,
         delete: delete,
         interactive_progress: interactive_progress,
         create_hosted_zones: create_hosted_zones,
