@@ -20,7 +20,8 @@
 require 'rubygems'
 require 'bundler/setup'
 
-require 'sprinkle_dns'
+require 'simplecov'
+SimpleCov.start
 
 require 'vcr'
 
@@ -29,6 +30,8 @@ VCR.configure do |c|
   c.hook_into :webmock
   c.cassette_library_dir = 'spec/cassettes'
 end
+
+require 'sprinkle_dns'
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
