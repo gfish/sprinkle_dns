@@ -84,32 +84,47 @@ module SprinkleDNS
         return [existing_hosted_zones, nil]
       end
 
+      hosted_zones = (existing_hosted_zones + missing_hosted_zones)
+
       unless @config.force?
-        changes = existing_hosted_zones.map{|h| SprinkleDNS::EntryPolicyService.new(h, @config)}.collect{|eps| eps.entries_to_change}.sum
-        puts
-        print "#{changes} changes to make. Continue? (y/N)"
+        changes = hosted_zones.map{|h| SprinkleDNS::EntryPolicyService.new(h, @config)}.collect{|eps| eps.entries_to_change}.sum
+
+        messages = []
+
+        messages << "#{missing_hosted_zones.size} hosted-zone(s) to create" if missing_hosted_zones.any?
+        messages << "#{changes} change(s) to make" if changes > 0
+        print messages.join(' and ').concat(". Continue? (y/N)")
+
         case gets.strip
         when 'y', 'Y'
           # continue
         else
           puts ".. exiting!"
-          return [existing_hosted_zones, nil]
+          return [hosted_zones, nil]
         end
       end
 
-      change_requests = @dns_provider.change_hosted_zones(existing_hosted_zones, @config)
       progress_printer = if @config.interactive_progress?
         SprinkleDNS::CLI::InteractiveChangeRequestPrinter.new
       else
         SprinkleDNS::CLI::PropagatedChangeRequestPrinter.new
       end
 
+      # Create missing hosted zones
+      change_requests = @dns_provider.create_hosted_zones(missing_hosted_zones)
       begin
         @dns_provider.check_change_requests(change_requests)
         progress_printer.draw(change_requests)
       end until change_requests.all?{|cr| cr.in_sync}
 
-      [existing_hosted_zones, change_requests]
+      # Update hosted zones
+      change_requests = @dns_provider.change_hosted_zones(hosted_zones, @config)
+      begin
+        @dns_provider.check_change_requests(change_requests)
+        progress_printer.draw(change_requests)
+      end until change_requests.all?{|cr| cr.in_sync}
+
+      [hosted_zones, change_requests]
     end
 
     private
