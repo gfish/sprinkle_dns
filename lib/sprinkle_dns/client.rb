@@ -70,7 +70,7 @@ module SprinkleDNS
       missing_hosted_zone_names = wanted_hosted_zones.map(&:name) - existing_hosted_zones.map(&:name)
       missing_hosted_zones = wanted_hosted_zones.select{|whz| missing_hosted_zone_names.include?(whz.name)}
 
-      unless @config.create_hosted_zones? && missing_hosted_zones
+      if missing_hosted_zones.any? && !@config.create_hosted_zones?
         missing_hosted_zones_error(missing_hosted_zones)
       end
 
