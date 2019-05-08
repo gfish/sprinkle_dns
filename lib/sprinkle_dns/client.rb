@@ -111,18 +111,20 @@ module SprinkleDNS
       end
 
       # Create missing hosted zones
-      change_requests = @dns_provider.create_hosted_zones(missing_hosted_zones)
+      change_requests_hosted_zones = @dns_provider.create_hosted_zones(missing_hosted_zones)
       begin
-        @dns_provider.check_change_requests(change_requests)
-        progress_printer.draw('CREATING', 'CREATED', change_requests)
-      end until change_requests.all?{|cr| cr.in_sync}
+        @dns_provider.check_change_requests(change_requests_hosted_zones)
+        progress_printer.draw('CREATING', 'CREATED', change_requests_hosted_zones)
+      end until change_requests_hosted_zones.all?{|cr| cr.in_sync}
 
       # Update hosted zones
-      change_requests = @dns_provider.change_hosted_zones(hosted_zones, @config)
+      change_requests_entries = @dns_provider.change_hosted_zones(hosted_zones, @config)
       begin
-        @dns_provider.check_change_requests(change_requests)
-        progress_printer.draw('UPDATING', 'UPDATED', change_requests)
-      end until change_requests.all?{|cr| cr.in_sync}
+        @dns_provider.check_change_requests(change_requests_entries)
+        progress_printer.draw('UPDATING', 'UPDATED', change_requests_entries)
+      end until change_requests_entries.all?{|cr| cr.in_sync}
+
+      change_requests = change_requests_hosted_zones + change_requests_entries
 
       [hosted_zones, change_requests]
     end
