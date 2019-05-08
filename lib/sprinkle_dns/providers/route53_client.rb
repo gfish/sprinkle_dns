@@ -52,11 +52,6 @@ module SprinkleDNS
         end
       end
 
-      if hosted_zones.size != filter.size
-        missing_hosted_zones = (filter - hosted_zones.map(&:name)).join(',')
-        raise MissingHostedZones, "Whooops, the following hosted zones does not exist: #{missing_hosted_zones}"
-      end
-
       hosted_zones
     end
 
@@ -71,6 +66,7 @@ module SprinkleDNS
             comment: "Created by SprinkleDNS #{SprinkleDNS::VERSION}",
           },
         })
+        @hosted_zone_to_api_mapping[hosted_zone.name] = change_request.hosted_zone.id
         change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
       end
 

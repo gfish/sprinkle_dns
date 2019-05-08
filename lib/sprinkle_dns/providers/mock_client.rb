@@ -21,14 +21,7 @@ module SprinkleDNS
         end
       end
 
-      hosted_zones = @hosted_zones.select{|hz| filter.include?(hz.name)}
-
-      if hosted_zones.size != filter.size
-        missing_hosted_zones = (filter - hosted_zones.map(&:name)).join(',')
-        raise MissingHostedZones, "Whooops, the following hosted zones does not exist: #{missing_hosted_zones}"
-      end
-
-      hosted_zones
+      @hosted_zones.select{|hz| filter.include?(hz.name)}
     end
 
     def create_hosted_zones(hosted_zones)
