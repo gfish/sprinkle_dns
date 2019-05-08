@@ -114,14 +114,14 @@ module SprinkleDNS
       change_requests = @dns_provider.create_hosted_zones(missing_hosted_zones)
       begin
         @dns_provider.check_change_requests(change_requests)
-        progress_printer.draw(change_requests)
+        progress_printer.draw('CREATING', 'CREATED', change_requests)
       end until change_requests.all?{|cr| cr.in_sync}
 
       # Update hosted zones
       change_requests = @dns_provider.change_hosted_zones(hosted_zones, @config)
       begin
         @dns_provider.check_change_requests(change_requests)
-        progress_printer.draw(change_requests)
+        progress_printer.draw('UPDATING', 'UPDATED', change_requests)
       end until change_requests.all?{|cr| cr.in_sync}
 
       [hosted_zones, change_requests]

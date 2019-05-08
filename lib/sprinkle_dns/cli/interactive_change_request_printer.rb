@@ -4,13 +4,13 @@ module SprinkleDNS::CLI
       @redraws = 0
     end
 
-    def draw(change_requests)
+    def draw(sync_word, synced_word, change_requests)
       lines = []
 
       change_requests.each do |change_request|
         dots   = '.' * change_request.tries
         sync   = change_request.in_sync ? '✔' : '✘'
-        status = change_request.in_sync ? 'PROPAGATED' : 'PROPAGATING'
+        status = change_request.in_sync ? synced_word : sync_word
         lines << "#{sync} #{status} #{change_request.hosted_zone.name}#{dots}"
       end
 
