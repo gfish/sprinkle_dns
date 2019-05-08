@@ -1,5 +1,6 @@
 module SprinkleDNS::CLI
   class HostedZoneDiff
+    HostedZone = Struct.new(:action, :name)
     Entry = Struct.new(:action, :type, :type_highlight, :name, :name_highlight, :value1, :value1_highlight, :value2, :value2_highlight, :hosted_zone)
 
     def diff(existing_hosted_zones, missing_hosted_zones, configuration)
@@ -17,6 +18,10 @@ module SprinkleDNS::CLI
         to_create = policy_service.entries_to_create
         to_update = policy_service.entries_to_update
         to_delete = policy_service.entries_to_delete
+
+        if missing_hosted_zones.include?(hosted_zone)
+          entries << hosted_zone_to_struct('+', hosted_zone)
+        end
 
         hosted_zone.entries.each do |entry|
           if to_create.include?(entry)
@@ -40,46 +45,51 @@ module SprinkleDNS::CLI
       entries.each do |e|
         colour_mod = case e.action
         when '+'
-          ->(text) { "#{fg(*green)}#{text}#{reset}" }
+          ->(text) { "#{fg(*green)}#{text}#{color_reset}" }
         when '-'
-          ->(text) { "#{fg(*red)}#{text}#{reset}" }
+          ->(text) { "#{fg(*red)}#{text}#{color_reset}" }
         when nil
           ->(text) { "#{text}" }
         end
 
         colour_mod_highlight = case e.action
         when '+'
-          ->(text) { "#{fg(*black)}#{bg(*green)}#{text}#{reset}" }
+          ->(text) { "#{fg(*black)}#{bg(*green)}#{text}#{color_reset}" }
         when '-'
-          ->(text) { "#{fg(*black)}#{bg(*red)}#{text}#{reset}" }
+          ->(text) { "#{fg(*black)}#{bg(*red)}#{text}#{color_reset}" }
         when nil
           ->(text) { "#{text}" }
         end
 
-        information = [colour_mod.call(e.action)]
+        case e
+        when HostedZone
+          information = [colour_mod.call(e.action), colour_mod_highlight.call(bold(e.name))]
+        when Entry
+          information = [colour_mod.call(e.action)]
 
-        information << if e.type_highlight
-          colour_mod_highlight.call(e.type)
-        else
-          colour_mod.call(e.type)
-        end
+          information << if e.type_highlight
+            colour_mod_highlight.call(e.type)
+          else
+            colour_mod.call(e.type)
+          end
 
-        information << if e.name_highlight
-          colour_mod_highlight.call(e.name)
-        else
-          colour_mod.call(e.name)
-        end
+          information << if e.name_highlight
+            colour_mod_highlight.call(e.name)
+          else
+            colour_mod.call(e.name)
+          end
 
-        information << if e.value1_highlight
-          colour_mod_highlight.call(e.value1)
-        else
-          colour_mod.call(e.value1)
-        end
+          information << if e.value1_highlight
+            colour_mod_highlight.call(e.value1)
+          else
+            colour_mod.call(e.value1)
+          end
 
-        information << if e.value2_highlight
-          colour_mod_highlight.call(e.value2)
-        else
-          colour_mod.call(e.value2)
+          information << if e.value2_highlight
+            colour_mod_highlight.call(e.value2)
+          else
+            colour_mod.call(e.value2)
+          end
         end
 
         coloured_entries << information.compact.delete_if(&:empty?)
@@ -115,8 +125,16 @@ module SprinkleDNS::CLI
       "\x1b[48;2;#{r};#{g};#{b}m"
     end
 
-    def reset
+    def color_reset
       "\x1b[0m"
+    end
+
+    def bold(text)
+      "\033[1m#{text}\033[0m"
+    end
+
+    def hosted_zone_to_struct(action, hosted_zone)
+      HostedZone.new(action, hosted_zone.name)
     end
 
     def entry_to_struct(action, entry, hosted_zone, parent_entry = nil)
