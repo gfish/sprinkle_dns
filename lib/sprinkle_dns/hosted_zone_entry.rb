@@ -61,8 +61,8 @@ module SprinkleDNS
 
     def new_value(new_entry)
       if new_entry.class == SprinkleDNS::HostedZoneEntry
-        @changed_value = true if @value != new_entry.value
-        @changed_ttl   = true if @ttl   != new_entry.ttl
+        @changed_value = true if @value.sort != new_entry.value.sort
+        @changed_ttl   = true if @ttl != new_entry.ttl
       else
         @changed_value = true
         @changed_ttl   = true

@@ -122,6 +122,95 @@ RSpec.describe SprinkleDNS::Client do
     end
   end
 
+  context 'comparing should ignore ordering' do
+    it 'for MX-records' do
+      hz = SprinkleDNS::HostedZone.new('rubyisms.co.uk.')
+
+      e1 = SprinkleDNS::HostedZoneEntry.new('MX', 'rubyisms.co.uk.', [
+        "10 aspmx2.googlemail.com.",
+        "5 alt1.aspmx.l.google.com",
+        "1 aspmx.l.google.com.",
+        "5 alt2.aspmx.l.google.com.",
+        "10 aspmx3.googlemail.com.",
+      ], 3600, hz.name)
+      # We are emulating that these records are already live, mark them as persisted
+      [e1].each do |persisted|
+        persisted.persisted!
+        hz.resource_record_sets << persisted
+      end
+
+      r42c = SprinkleDNS::MockClient.new([hz])
+      sdns = SprinkleDNS::Client.new(r42c)
+
+      sdns.entry('MX', 'rubyisms.co.uk.', [
+        '1 aspmx.l.google.com',
+        '5 alt2.aspmx.l.google.com',
+        '5 alt1.aspmx.l.google.com',
+        '10 aspmx3.googlemail.com',
+        '10 aspmx2.googlemail.com',
+      ], 3600)
+
+      existing_hosted_zones, _ = sdns.compare
+      policy_service = SprinkleDNS::EntryPolicyService.new(hz, sdns.config)
+
+      expect(policy_service.entries_to_create.size).to eq 0
+      expect(policy_service.entries_to_update.size).to eq 0
+      expect(policy_service.entries_to_delete.size).to eq 0
+    end
+
+    it 'for TXT-records' do
+      hz = SprinkleDNS::HostedZone.new('pythonisms.co.uk.')
+
+      e1 = SprinkleDNS::HostedZoneEntry.new('TXT', 'pythonisms.co.uk.', [
+        %q("google-site-verification=FK82Vlp1w5rz0HkTMo6PW8aHU2IIvEsPKARoFlSoDPs"),
+        %q("google-site-verification=HdPsn7e-9AQy0sD671kRWzLuORYI2apSPMpzhp_1LVQ"),
+        %q("google-site-verification=1Vm7qTouRoz66EhSn1fFMLCnx3MQfznsti2zo8UYYiI"),
+        %q("google-site-verification=IiD31xJH-gQmUkpg95z7u8CS2K7bjdwzbsGvPIFLIAk"),
+        %q("google-site-verification=s3KCcWO7nu5LGleqnaHoi8pE0lw2gPf8gKTTM6YKbjs"),
+        %q("google-site-verification=kIfG408ueAdqMx8n0-UP2hXep1ONimdgF6glDaXWglo"),
+        %q("google-site-verification=p72jEH3LGN8T8Nqy8iCS5BZE8MU7FpVSvAhwSIZUFAE"),
+        %q("google-site-verification=tZOAzOQJQA-vY2epnHzLJWlRWIClTqUTV-5f9scFtr0"),
+        %q("google-site-verification=_7tC6N0vfhR_tqWQ_gK4kZlCNEtmV7Fy4PGkRuMvoKA"),
+        %q("google-site-verification=V7KRnRTW8fqQXUhEpFA2o7WkY6MVusthznsZRvEFmwM"),
+        %q("v=spf1 include:_spf.google.com include:support.zendesk.com include:mail.zendesk.com include:servers.mcsv.net include:spf.mandrillapp.com include:sendgrid.net ~all"),
+        %q("google-site-verification=ZIZaEr9kOQqbelfUaa-4Li-Sih1VjNtlkwXr6p9pTQA"),
+        %q("google-site-verification=fqE3nRX4hvcaQNMbF8arnHNAk5VRUsD8j5BYf-61nL4"),
+      ], 3600, hz.name)
+      # We are emulating that these records are already live, mark them as persisted
+      [e1].each do |persisted|
+        persisted.persisted!
+        hz.resource_record_sets << persisted
+      end
+
+      r42c = SprinkleDNS::MockClient.new([hz])
+      sdns = SprinkleDNS::Client.new(r42c)
+
+      entries = [
+        %q{"v=spf1 include:_spf.google.com include:support.zendesk.com include:mail.zendesk.com include:servers.mcsv.net include:spf.mandrillapp.com include:sendgrid.net ~all"},
+        %q{"google-site-verification=V7KRnRTW8fqQXUhEpFA2o7WkY6MVusthznsZRvEFmwM"},
+        %q{"google-site-verification=_7tC6N0vfhR_tqWQ_gK4kZlCNEtmV7Fy4PGkRuMvoKA"},
+        %q{"google-site-verification=tZOAzOQJQA-vY2epnHzLJWlRWIClTqUTV-5f9scFtr0"},
+        %q{"google-site-verification=p72jEH3LGN8T8Nqy8iCS5BZE8MU7FpVSvAhwSIZUFAE"},
+        %q{"google-site-verification=kIfG408ueAdqMx8n0-UP2hXep1ONimdgF6glDaXWglo"},
+        %q{"google-site-verification=s3KCcWO7nu5LGleqnaHoi8pE0lw2gPf8gKTTM6YKbjs"},
+        %q{"google-site-verification=IiD31xJH-gQmUkpg95z7u8CS2K7bjdwzbsGvPIFLIAk"},
+        %q{"google-site-verification=1Vm7qTouRoz66EhSn1fFMLCnx3MQfznsti2zo8UYYiI"},
+        %q("google-site-verification=HdPsn7e-9AQy0sD671kRWzLuORYI2apSPMpzhp_1LVQ"),
+        %q("google-site-verification=FK82Vlp1w5rz0HkTMo6PW8aHU2IIvEsPKARoFlSoDPs"),
+        %q("google-site-verification=ZIZaEr9kOQqbelfUaa-4Li-Sih1VjNtlkwXr6p9pTQA"),
+        %q("google-site-verification=fqE3nRX4hvcaQNMbF8arnHNAk5VRUsD8j5BYf-61nL4"),
+      ]
+      sdns.entry('TXT', 'pythonisms.co.uk.', entries, 3600)
+
+      existing_hosted_zones, _ = sdns.compare
+      policy_service = SprinkleDNS::EntryPolicyService.new(hz, sdns.config)
+
+      expect(policy_service.entries_to_create.size).to eq 0
+      expect(policy_service.entries_to_update.size).to eq 0
+      expect(policy_service.entries_to_delete.size).to eq 0
+    end
+  end
+
   context 'delete config option' do
     before(:all) do
       @hz01 = SprinkleDNS::HostedZone.new('colourful.co.uk.')
