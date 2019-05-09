@@ -1,6 +1,10 @@
 module SprinkleDNS::CLI
   class InteractiveChangeRequestPrinter
     def initialize
+      reset!
+    end
+
+    def reset!
       @redraws = 0
     end
 

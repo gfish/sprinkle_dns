@@ -1,6 +1,10 @@
 module SprinkleDNS::CLI
   class PropagatedChangeRequestPrinter
     def initialize
+      reset!
+    end
+
+    def reset!
       @completed = []
       @printed = []
     end

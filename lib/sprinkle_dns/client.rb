@@ -28,6 +28,12 @@ module SprinkleDNS
       )
       @dns_provider = dns_provider
       @wanted_hosted_zones = []
+
+      @progress_printer = if @config.interactive_progress?
+        SprinkleDNS::CLI::InteractiveChangeRequestPrinter.new
+      else
+        SprinkleDNS::CLI::PropagatedChangeRequestPrinter.new
+      end
     end
 
     def entry(type, name, value, ttl = 3600, hosted_zone = nil)
@@ -104,21 +110,15 @@ module SprinkleDNS
         end
       end
 
-      progress_printer = if @config.interactive_progress?
-        SprinkleDNS::CLI::InteractiveChangeRequestPrinter
-      else
-        SprinkleDNS::CLI::PropagatedChangeRequestPrinter
-      end
-
       # Create missing hosted zones
       change_requests_hosted_zones = @dns_provider.create_hosted_zones(missing_hosted_zones)
       if change_requests_hosted_zones.any?
         puts
         puts "Creating hosted zones:"
-        printer = progress_printer.new
+        @progress_printer.reset!
         begin
           @dns_provider.check_change_requests(change_requests_hosted_zones)
-          printer.draw(change_requests_hosted_zones, 'CREATING', 'CREATED')
+          @progress_printer.draw(change_requests_hosted_zones, 'CREATING', 'CREATED')
         end until change_requests_hosted_zones.all?{|cr| cr.in_sync}
       end
 
@@ -127,10 +127,10 @@ module SprinkleDNS
       if change_requests_entries.any?
         puts
         puts "Updating hosted zones:"
-        printer = progress_printer.new
+        @progress_printer.reset!
         begin
           @dns_provider.check_change_requests(change_requests_entries)
-          printer.draw(change_requests_entries, 'UPDATING', 'UPDATED')
+          @progress_printer.draw(change_requests_entries, 'UPDATING', 'UPDATED')
         end until change_requests_entries.all?{|cr| cr.in_sync}
       end
 
