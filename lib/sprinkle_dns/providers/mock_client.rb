@@ -4,7 +4,7 @@ module SprinkleDNS
   class MockClient
     attr_reader :hosted_zones
 
-    def initialize(hosted_zones)
+    def initialize(hosted_zones = [])
       @hosted_zones = hosted_zones
     end
 
@@ -21,14 +21,17 @@ module SprinkleDNS
         end
       end
 
-      hosted_zones = @hosted_zones.select{|hz| filter.include?(hz.name)}
+      @hosted_zones.select{|hz| filter.include?(hz.name)}
+    end
 
-      if hosted_zones.size != filter.size
-        missing_hosted_zones = (filter - hosted_zones.map(&:name)).join(',')
-        raise MissingHostedZones, "Whooops, the following hosted zones does not exist: #{missing_hosted_zones}"
+    def create_hosted_zones(hosted_zones)
+      change_requests = []
+
+      hosted_zones.each do |hosted_zone|
+        change_requests << MockChangeRequest.new(hosted_zone, 0, rand(3..15), false)
       end
 
-      hosted_zones
+      change_requests
     end
 
     def change_hosted_zones(hosted_zones, configuration)
@@ -38,9 +41,7 @@ module SprinkleDNS
         changes = EntryPolicyService.new(hosted_zone, configuration).compile
 
         if changes.any?
-          change_requests << MockChangeRequest.new(hosted_zone, 1, rand(3..15), false)
-        else
-          change_requests << MockChangeRequest.new(hosted_zone, 1, 1, true)
+          change_requests << MockChangeRequest.new(hosted_zone, 0, rand(3..15), false)
         end
       end
 

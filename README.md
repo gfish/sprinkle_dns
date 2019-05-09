@@ -63,6 +63,7 @@ sdns = SprinkleDNS::Client.new(client,
   force: true,
   delete: false,
   interactive_progress: true,
+  create_hosted_zones: false,
 )
 ```
 
@@ -70,11 +71,12 @@ Here is a table that shows the different configuration options:
 
 | Name                   | Description                                                                                               | Default value |
 |------------------------|-----------------------------------------------------------------------------------------------------------|---------------|
-| `dry_run`              | Do not make any changes, just compare and exit, useful with `diff: true`.                                 | `true`       |
+| `dry_run`              | Do not make any changes, just compare and exit, useful with `diff: true`.                                 | `true`        |
 | `diff`                 | Prints a diff to list the changes that are going to be made.                                              | `true`        |
-| `force`                | Do not ask before changes are made, just apply.                                                           | `false`        |
+| `force`                | Do not ask before changes are made, just apply.                                                           | `false`       |
 | `delete`               | Specifies whether unreferenced entries should be deleted.                                                 | `false`       |
 | `interactive_progress` | Shows interactive progress whilst changes are being applied, nice for your terminal, not for your CI-job. | `true`        |
+| `create_hosted_zones`  | Specifies whether or not hosted zones should be created.                                                  | `false`       |
 
 ### `dry_run` and `diff`
 
@@ -93,6 +95,10 @@ With `force` being set to `false` you will be asked whether or not you want to a
 With `delete` being set to `true` SprinkleDNS will delete **any** entries not being referenced, these will also show up in the diff (if it is enabled):
 
 ![delete true shows up in diffs](readme_files/delete_true_and_diff.png)
+
+### `create_hosted_zones: true`
+
+With `create_hosted_zones` set to `true`, SprinkleDNS will create a hosted zone if not existing, it requires the `route53:CreateHostedZone` permission.
 
 ## Support for ALIAS-records
 
@@ -117,6 +123,10 @@ This gem uses the following permissions to manage hosted zones:
 - `route53:ListResourceRecordSets`, to read the records for a hosted zone.
 - `route53:ChangeResourceRecordSets`, to change records for a hosted zone.
 - `route53:GetChange`, for reading when a change have been applied.
+
+Additionally, you can consider adding the following permissions:
+
+- `route53:CreateHostedZone`, for allowing the gem to create hosted zones.
 
 You can allow it for all of your hosted zones:
 

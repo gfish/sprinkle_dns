@@ -17,10 +17,23 @@ module SprinkleDNS
   class Client
     attr_reader :wanted_hosted_zones, :config
 
-    def initialize(dns_provider, dry_run: false, diff: true, force: true, delete: false, interactive_progress: true)
-      @config = SprinkleDNS::Config.new(dry_run: dry_run, diff: diff, force: force, delete: delete, interactive_progress: interactive_progress)
+    def initialize(dns_provider, dry_run: false, diff: true, force: true, delete: false, interactive_progress: true, create_hosted_zones: false)
+      @config = SprinkleDNS::Config.new(
+        dry_run: dry_run,
+        diff: diff,
+        force: force,
+        delete: delete,
+        interactive_progress: interactive_progress,
+        create_hosted_zones: create_hosted_zones,
+      )
       @dns_provider = dns_provider
       @wanted_hosted_zones = []
+
+      @progress_printer = if @config.interactive_progress?
+        SprinkleDNS::CLI::InteractiveChangeRequestPrinter.new
+      else
+        SprinkleDNS::CLI::PropagatedChangeRequestPrinter.new
+      end
     end
 
     def entry(type, name, value, ttl = 3600, hosted_zone = nil)
@@ -45,25 +58,6 @@ module SprinkleDNS
     def compare
       existing_hosted_zones = @dns_provider.fetch_hosted_zones(filter: @wanted_hosted_zones.map(&:name))
 
-      # Make sure we have the same amount of zones
-      unless existing_hosted_zones.map(&:name) - @wanted_hosted_zones.map(&:name) == []
-        error_message = []
-        error_message << "We found #{existing_hosted_zones.size} existing zones, but #{@wanted_hosted_zones} was described, exiting!"
-        error_message << ""
-
-        error_message << "Existing:"
-        existing_hosted_zones.map(&:name).sort.each do |ehz|
-          error_message << "- #{ehz}"
-        end
-
-        error_message << "Described:"
-        @wanted_hosted_zones.map(&:name).sort.each do |whz|
-          error_message << "- #{whz}"
-        end
-
-        raise error_message.join("\n")
-      end
-
       # Tell our existing hosted zones about our wanted changes
       existing_hosted_zones.each do |existing_hosted_zone|
         wanted_hosted_zone = @wanted_hosted_zones.find{|whz| whz.name == existing_hosted_zone.name}
@@ -77,10 +71,17 @@ module SprinkleDNS
     end
 
     def sprinkle!
-      _, existing_hosted_zones = compare
+      wanted_hosted_zones, existing_hosted_zones = compare
+
+      missing_hosted_zone_names = wanted_hosted_zones.map(&:name) - existing_hosted_zones.map(&:name)
+      missing_hosted_zones = wanted_hosted_zones.select{|whz| missing_hosted_zone_names.include?(whz.name)}
+
+      if missing_hosted_zones.any? && !@config.create_hosted_zones?
+        missing_hosted_zones_error(missing_hosted_zones)
+      end
 
       if @config.diff?
-        SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones, @config).each do |line|
+        SprinkleDNS::CLI::HostedZoneDiff.new.diff(existing_hosted_zones, missing_hosted_zones, @config).each do |line|
           puts line.join(' ')
         end
       end
@@ -89,32 +90,53 @@ module SprinkleDNS
         return [existing_hosted_zones, nil]
       end
 
+      hosted_zones = (existing_hosted_zones + missing_hosted_zones)
+
       unless @config.force?
-        changes = existing_hosted_zones.map{|h| SprinkleDNS::EntryPolicyService.new(h, @config)}.collect{|eps| eps.entries_to_change}.sum
-        puts
-        print "#{changes} changes to make. Continue? (y/N)"
+        changes = hosted_zones.map{|h| SprinkleDNS::EntryPolicyService.new(h, @config)}.collect{|eps| eps.entries_to_change}.sum
+
+        messages = []
+
+        messages << "#{missing_hosted_zones.size} hosted-zone(s) to create" if missing_hosted_zones.any?
+        messages << "#{changes} change(s) to make" if changes > 0
+        print messages.join(' and ').concat(". Continue? (y/N)")
+
         case gets.strip
         when 'y', 'Y'
           # continue
         else
           puts ".. exiting!"
-          return [existing_hosted_zones, nil]
+          return [hosted_zones, nil]
         end
       end
 
-      change_requests = @dns_provider.change_hosted_zones(existing_hosted_zones, @config)
-      progress_printer = if @config.interactive_progress?
-        SprinkleDNS::CLI::InteractiveChangeRequestPrinter.new
-      else
-        SprinkleDNS::CLI::PropagatedChangeRequestPrinter.new
+      # Create missing hosted zones
+      change_requests_hosted_zones = @dns_provider.create_hosted_zones(missing_hosted_zones)
+      if change_requests_hosted_zones.any?
+        puts
+        puts "Creating hosted zones:"
+        @progress_printer.reset!
+        begin
+          @dns_provider.check_change_requests(change_requests_hosted_zones)
+          @progress_printer.draw(change_requests_hosted_zones, 'CREATING', 'CREATED')
+        end until change_requests_hosted_zones.all?{|cr| cr.in_sync}
       end
 
-      begin
-        @dns_provider.check_change_requests(change_requests)
-        progress_printer.draw(change_requests)
-      end until change_requests.all?{|cr| cr.in_sync}
+      # Update hosted zones
+      change_requests_entries = @dns_provider.change_hosted_zones(hosted_zones, @config)
+      if change_requests_entries.any?
+        puts
+        puts "Updating hosted zones:"
+        @progress_printer.reset!
+        begin
+          @dns_provider.check_change_requests(change_requests_entries)
+          @progress_printer.draw(change_requests_entries, 'UPDATING', 'UPDATED')
+        end until change_requests_entries.all?{|cr| cr.in_sync}
+      end
 
-      [existing_hosted_zones, change_requests]
+      change_requests = change_requests_hosted_zones + change_requests_entries
+
+      [hosted_zones, change_requests]
     end
 
     private
@@ -130,6 +152,17 @@ module SprinkleDNS
       end
 
       wanted_hosted_zone
+    end
+
+    def missing_hosted_zones_error(missing_hosted_zones)
+      error_message = []
+      error_message << "There are #{missing_hosted_zones.size} missing hosted zones:"
+
+      missing_hosted_zones.map(&:name).sort.each do |whz|
+        error_message << "- #{whz}"
+      end
+
+      raise error_message.join("\n")
     end
   end
 
