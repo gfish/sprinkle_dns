@@ -154,7 +154,6 @@ RSpec.describe SprinkleDNS::Client do
 
       expect(existing_hosted_zones.size).to eq 1
 
-      hosted_zone = existing_hosted_zones.first
       policy_service = SprinkleDNS::EntryPolicyService.new(@hz01, sdns.config)
       expect(policy_service.entries_to_delete.size).to eq 0
       expect(policy_service.compile.select{|rrset| rrset[:action] == 'DELETE'}.count).to eq 0
@@ -173,7 +172,6 @@ RSpec.describe SprinkleDNS::Client do
 
       expect(existing_hosted_zones.size).to eq 1
 
-      hosted_zone = existing_hosted_zones.first
       policy_service = SprinkleDNS::EntryPolicyService.new(@hz01, sdns.config)
       expect(policy_service.entries_to_delete.size).to eq 4
       expect(policy_service.compile.select{|rrset| rrset[:action] == 'DELETE'}.count).to eq 4

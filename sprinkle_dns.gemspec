@@ -9,9 +9,9 @@ Gem::Specification.new do |gem|
   gem.email       = ["kaspergrubbe@gmail.com"]
   gem.homepage    = "http://github.com/gfish/sprinkle_dns"
   gem.summary     = %q{Make handling DNS easier}
-  gem.description = %q{Make handling DNS easier}
+  gem.description = %q{Make handling DNS easier by using simple Ruby constructs}
 
-  gem.licenses = ['MIT', 'GPL-2']
+  gem.licenses = ['MIT', 'GPL-2.0']
 
   gem.files         = `git ls-files`.split("\n")
   gem.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
@@ -20,10 +20,10 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = ">= 2.4.0"
   gem.add_runtime_dependency 'aws-sdk-route53', '~> 1.21'
 
-  gem.add_development_dependency "rspec"
-  gem.add_development_dependency "simplecov"
-  gem.add_development_dependency "pry"
-  gem.add_development_dependency "rake"
+  gem.add_development_dependency "rspec", '~> 3.8'
+  gem.add_development_dependency "simplecov", '~> 0.16'
+  gem.add_development_dependency "pry", '~> 0.12'
+  gem.add_development_dependency "rake", '~> 12.3'
   gem.add_development_dependency "vcr", '~> 3.0'
   gem.add_development_dependency "webmock", '~> 2.3'
 end
