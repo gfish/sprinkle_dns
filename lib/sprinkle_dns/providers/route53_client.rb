@@ -67,7 +67,7 @@ module SprinkleDNS
           },
         })
         @hosted_zone_to_api_mapping[hosted_zone.name] = change_request.hosted_zone.id
-        change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
+        change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 0, false)
       end
 
       change_requests
@@ -87,9 +87,9 @@ module SprinkleDNS
             }
           })
 
-          change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 1, false)
         else
           change_requests << Route53ChangeRequest.new(hosted_zone, nil, 1, true)
+          change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 0, false)
         end
       end
 
@@ -100,7 +100,7 @@ module SprinkleDNS
       change_requests.reject{|cr| cr.in_sync}.each do |change_request|
         resp = @api_client.get_change({id: change_request.change_info_id})
         change_request.in_sync = resp.change_info.status == 'INSYNC'
-        change_request.tries  += 1
+        change_request.tries += 1
       end
 
       change_requests
