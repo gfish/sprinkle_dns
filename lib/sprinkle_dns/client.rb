@@ -118,7 +118,7 @@ module SprinkleDNS
         printer = progress_printer.new
         begin
           @dns_provider.check_change_requests(change_requests_hosted_zones)
-          printer.draw('CREATING', 'CREATED', change_requests_hosted_zones)
+          printer.draw(change_requests_hosted_zones, 'CREATING', 'CREATED')
         end until change_requests_hosted_zones.all?{|cr| cr.in_sync}
       end
 
@@ -130,7 +130,7 @@ module SprinkleDNS
         printer = progress_printer.new
         begin
           @dns_provider.check_change_requests(change_requests_entries)
-          printer.draw('UPDATING', 'UPDATED', change_requests_entries)
+          printer.draw(change_requests_entries, 'UPDATING', 'UPDATED')
         end until change_requests_entries.all?{|cr| cr.in_sync}
       end
 

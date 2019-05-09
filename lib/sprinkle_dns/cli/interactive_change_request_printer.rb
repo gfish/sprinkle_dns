@@ -4,7 +4,7 @@ module SprinkleDNS::CLI
       @redraws = 0
     end
 
-    def draw(sync_word, synced_word, change_requests)
+    def draw(change_requests, sync_word = "SYNCING", synced_word = "SYNCED")
       lines = []
 
       change_requests.each do |change_request|

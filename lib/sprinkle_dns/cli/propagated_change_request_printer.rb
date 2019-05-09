@@ -5,7 +5,7 @@ module SprinkleDNS::CLI
       @printed = []
     end
 
-    def draw(sync_word, synced_word, change_requests)
+    def draw(change_requests, sync_word: "SYNCING", synced_word: "SYNCED")
       change_requests.each do |change_request|
         if change_request.in_sync
           hosted_zone_name = change_request.hosted_zone.name
