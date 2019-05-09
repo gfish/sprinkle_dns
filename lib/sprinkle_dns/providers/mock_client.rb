@@ -41,8 +41,6 @@ module SprinkleDNS
         changes = EntryPolicyService.new(hosted_zone, configuration).compile
 
         if changes.any?
-        else
-          change_requests << MockChangeRequest.new(hosted_zone, 1, 1, true)
           change_requests << MockChangeRequest.new(hosted_zone, 0, rand(3..15), false)
         end
       end

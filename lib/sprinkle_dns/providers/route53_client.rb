@@ -87,8 +87,6 @@ module SprinkleDNS
             }
           })
 
-        else
-          change_requests << Route53ChangeRequest.new(hosted_zone, nil, 1, true)
           change_requests << Route53ChangeRequest.new(hosted_zone, change_request.change_info.id, 0, false)
         end
       end
