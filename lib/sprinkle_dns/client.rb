@@ -95,16 +95,21 @@ module SprinkleDNS
       unless @config.force?
         changes = hosted_zones.map{|h| SprinkleDNS::EntryPolicyService.new(h, @config)}.collect{|eps| eps.entries_to_change}.sum
 
-        messages = []
+        if missing_hosted_zones.any? || changes > 0
+          messages = []
+          messages << "#{missing_hosted_zones.size} hosted-zone(s) to create" if missing_hosted_zones.any?
+          messages << "#{changes} change(s) to make" if changes > 0
+          print messages.join(' and ').concat(". Continue? (y/N)")
 
-        messages << "#{missing_hosted_zones.size} hosted-zone(s) to create" if missing_hosted_zones.any?
-        messages << "#{changes} change(s) to make" if changes > 0
-        print messages.join(' and ').concat(". Continue? (y/N)")
-
-        case gets.strip
-        when 'y', 'Y'
-          # continue
+          case gets.strip
+          when 'y', 'Y'
+            # continue
+          else
+            puts ".. exiting!"
+            return [hosted_zones, nil]
+          end
         else
+          puts "No changes to make, everything up to date!"
           puts ".. exiting!"
           return [hosted_zones, nil]
         end
