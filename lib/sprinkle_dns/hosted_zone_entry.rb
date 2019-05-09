@@ -2,16 +2,17 @@ module SprinkleDNS
   class HostedZoneEntry
     attr_accessor :type, :name, :value, :ttl, :hosted_zone
     attr_accessor :changed_type, :changed_name, :changed_value, :changed_ttl
-    attr_accessor :referenced
+    attr_accessor :referenced, :persisted
+    attr_accessor :new_entry
 
     def initialize(type, name, value, ttl, hosted_zone)
       @type           = type
       @name           = zonify!(name)
       @value          = Array.wrap(value)
-      @original_value = @value
       @ttl            = ttl
-      @original_ttl   = ttl
       @hosted_zone    = hosted_zone
+
+      @new_entry      = nil
 
       raise if [@type, @name, @value, @ttl, @hosted_zone].any?(&:nil?)
       raise SprinkleDNS::RecordNotAString.new('Record-type should be a string') unless @type.is_a?(String)
@@ -23,6 +24,7 @@ module SprinkleDNS
       @changed_value = false
       @changed_ttl   = false
       @referenced    = false
+      @persisted     = false
 
       if ['CNAME', 'MX'].include?(type)
         @value = @value.map!{|v| zonify!(v)}
@@ -37,6 +39,14 @@ module SprinkleDNS
       [@changed_type, @changed_name, @changed_value, @changed_ttl].all?
     end
 
+    def persisted!
+      @persisted = true
+    end
+
+    def persisted?
+      @persisted
+    end
+
     def changed?
       [@changed_type, @changed_name, @changed_value, @changed_ttl].any?
     end
@@ -49,25 +59,26 @@ module SprinkleDNS
       @referenced
     end
 
-    def modify(value, ttl)
-      @value = value
-      @ttl   = ttl
+    def new_value(new_entry)
+      if new_entry.class == SprinkleDNS::HostedZoneEntry
+        @changed_value = true if @value != new_entry.value
+        @changed_ttl   = true if @ttl   != new_entry.ttl
+      else
+        @changed_value = true
+        @changed_ttl   = true
+      end
 
-      @changed_value = true if @original_value != @value
-      @changed_ttl   = true if @original_ttl   != @ttl
+      # TODO test this
+      if @changed_value || @changed_ttl
+        @new_entry = new_entry
+      end
 
       self.changed?
     end
 
-    def ==(other)
-      type  == other.type &&
-      name  == other.name &&
-      value == other.value &&
-      ttl   == other.ttl
-    end
-
     def to_s
       [
+        "Entry",
         sprintf("%4s", type),
         sprintf("%30s", name),
         sprintf("%50s", value.join(", ")),

@@ -25,6 +25,8 @@ SimpleCov.start
 
 require 'vcr'
 
+require './spec/support/entry_helpers'
+
 VCR.configure do |c|
   c.allow_http_connections_when_no_cassette = false
   c.hook_into :webmock
@@ -32,6 +34,7 @@ VCR.configure do |c|
 end
 
 require 'sprinkle_dns'
+require 'sprinkle_dns/providers/mock_client'
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate
@@ -102,4 +105,6 @@ RSpec.configure do |config|
   # test failures related to randomization by passing the same `--seed` value
   # as the one that triggered the failure.
   Kernel.srand config.seed
+
+  config.include EntryHelpers
 end
