@@ -1,22 +1,22 @@
 require 'sprinkle_dns'
 
-require_relative '../test_perms'
-client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
+# require_relative '../test_perms'
+# client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
 
-#require 'sprinkle_dns/providers/mock_client'
-# hz = SprinkleDNS::HostedZone.new('test.colourful.com.')
-# pe01 = SprinkleDNS::HostedZoneEntry.new('A', 'noref.test.colourful.com.', Array.wrap('80.80.80.80'), 3600, hz.name)
-# pe02 = SprinkleDNS::HostedZoneEntry.new('A', 'updateme.test.colourful.com.', Array.wrap('80.80.80.80'), 3600, hz.name)
-# pe03 = SprinkleDNS::HostedZoneEntry.new('TXT', 'txt.test.colourful.com.', %Q{"#{Time.now.to_i}"}, 60, hz.name)
-# pe04 = SprinkleDNS::HostedZoneEntry.new('A', 'nochange.test.colourful.com.', Array.wrap('80.80.80.80'), 60, hz.name)
-# sleep(1)
-# # We are emulating that these records are already live, mark them as persisted
-# [pe01, pe02, pe03, pe04].each do |persisted|
-#   persisted.persisted!
-#   hz.resource_record_sets << persisted
-# end
+require 'sprinkle_dns/providers/mock_client'
+hz = SprinkleDNS::HostedZone.new('test.colourful.com.')
+pe01 = SprinkleDNS::HostedZoneEntry.new('A', 'noref.test.colourful.com.', Array.wrap('80.80.80.80'), 3600, hz.name)
+pe02 = SprinkleDNS::HostedZoneEntry.new('A', 'updateme.test.colourful.com.', Array.wrap('80.80.80.80'), 3600, hz.name)
+pe03 = SprinkleDNS::HostedZoneEntry.new('TXT', 'txt.test.colourful.com.', %Q{"#{Time.now.to_i}"}, 60, hz.name)
+pe04 = SprinkleDNS::HostedZoneEntry.new('A', 'nochange.test.colourful.com.', Array.wrap('80.80.80.80'), 60, hz.name)
+sleep(1)
+# We are emulating that these records are already live, mark them as persisted
+[pe01, pe02, pe03, pe04].each do |persisted|
+  persisted.persisted!
+  hz.resource_record_sets << persisted
+end
 
-# client = SprinkleDNS::MockClient.new([hz])
+client = SprinkleDNS::MockClient.new([hz])
 sdns = SprinkleDNS::Client.new(client, delete: true, force: true)
 
 sdns.entry('A', 'noref.test.billetto.com.', '127.0.0.1', 7200, 'test.billetto.com')
