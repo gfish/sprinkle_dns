@@ -35,7 +35,9 @@ module SprinkleDNS::CLI
           elsif to_delete.include?(entry)
             entries << entry_to_struct('-', entry, hosted_zone)
           else
-            entries << entry_to_struct(nil, entry, hosted_zone)
+            if configuration.show_untouched?
+              entries << entry_to_struct(nil, entry, hosted_zone)
+            end
           end
         end
       end

@@ -60,6 +60,7 @@ client = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
 sdns = SprinkleDNS::Client.new(client,
   dry_run: false,
   diff: true,
+  show_untouched: false,
   force: true,
   delete: false,
   interactive_progress: true,
@@ -73,6 +74,7 @@ Here is a table that shows the different configuration options:
 |------------------------|-----------------------------------------------------------------------------------------------------------|---------------|
 | `dry_run`              | Do not make any changes, just compare and exit, useful with `diff: true`.                                 | `true`        |
 | `diff`                 | Prints a diff to list the changes that are going to be made.                                              | `true`        |
+| `show_untouched`       | Specifies whether or not the diff should show untouched records or not.                                   | `false`       |
 | `force`                | Do not ask before changes are made, just apply.                                                           | `false`       |
 | `delete`               | Specifies whether unreferenced entries should be deleted.                                                 | `false`       |
 | `interactive_progress` | Shows interactive progress whilst changes are being applied, nice for your terminal, not for your CI-job. | `true`        |

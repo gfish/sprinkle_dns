@@ -17,7 +17,7 @@ module SprinkleDNS
   class Client
     attr_reader :wanted_hosted_zones, :config
 
-    def initialize(dns_provider, dry_run: false, diff: true, force: true, delete: false, interactive_progress: true, create_hosted_zones: false)
+    def initialize(dns_provider, dry_run: false, diff: true, force: true, delete: false, interactive_progress: true, create_hosted_zones: false, show_untouched: false)
       @config = SprinkleDNS::Config.new(
         dry_run: dry_run,
         diff: diff,
@@ -25,6 +25,7 @@ module SprinkleDNS
         delete: delete,
         interactive_progress: interactive_progress,
         create_hosted_zones: create_hosted_zones,
+        show_untouched: show_untouched,
       )
       @dns_provider = dns_provider
       @wanted_hosted_zones = []
