@@ -181,3 +181,116 @@ For a more "locked down" policy you can use this (remember to update the `resour
     ]
 }
 ```
+
+# Obtain certificates with LetsEncrypt
+
+Not everyone is aware of it, but LetsEncrypt allows for a DNS-challenge, this means that if you want to have a certificate for `billetto.com` you can ask certbot to use the DNS-challenge, and run a script:
+
+```bash
+certbot --preferred-challenges dns --manual-auth-hook "bash run_my_dns_script.sh"
+```
+
+The script `run_my_dns_script.sh` will then recieve two ENV-variables, one for `CERTBOT_DOMAIN` which in our example is `billetto.com` and `CERTBOT_VALIDATION` which is a value that needs to be set in the DNS, so in order to prove to LetsEncrypt that we manage the domain we have to set the following:
+
+```
+TXT   _acme-challenge.ENV['CERTBOT_DOMAIN']   ENV['CERTBOT_VALIDATION']
+```
+
+Instead of a bash-script, we can use Ruby and SprinkleDNS like so:
+
+```ruby
+#!/usr/bin/env ruby
+require 'sprinkle_dns'
+require_relative '../includes/access_keys'
+
+raise 'ENV-variable CERTBOT_DOMAIN is not supplied' if ENV['CERTBOT_DOMAIN'].nil?
+raise 'ENV-variable CERTBOT_VALIDATION is not supplied' if ENV['CERTBOT_VALIDATION'].nil?
+
+c = SprinkleDNS::Route53Client.new(ACCESS_KEY_ID, SECRET_ACCESS_KEY)
+s = SprinkleDNS::Client.new(c, interactive_progress: false, diff: false, force: true, delete: false, create_hosted_zones: false)
+s.entry('TXT', "_acme-challenge.#{ENV['CERTBOT_DOMAIN']}", %Q{"#{ENV['CERTBOT_VALIDATION']}"}, 60)
+s.sprinkle!
+```
+
+Save it as `dns_auth.rb`, and remember to chmod it: `chmod +x dns_auth.rb`.
+
+Now you can start on the main script `ssl_certbot.rb`:
+
+```ruby
+#!/usr/bin/env ruby
+require 'open3'
+require 'fileutils'
+
+EMAIL = 'domains@billetto.com'
+MAIN_DOMAIN = 'billetto.com'
+DOMAINS = ['billetto.dk', 'billetto.co.uk', 'billetto.com']
+
+def run_command(command)
+  puts("+: #{command}")
+
+  Open3.popen2e(command) do |stdin, stdout_stderr, wait_thread|
+    Thread.new do
+      stdout_stderr.each {|l| puts l }
+    end
+    wait_thread.value
+  end
+end
+
+def print_guide
+  puts "Congratulations, you have a new certificate!"
+  puts "----------------------------------------------------------------"
+  puts "CERTIFICATE: #{Dir.pwd}/config/live/billetto.com/cert.pem"
+  puts "KEY:         #{Dir.pwd}/config/live/billetto.com/privkey.pem"
+  puts "CHAIN:       #{Dir.pwd}/config/live/billetto.com/chain.pem"
+end
+
+letsencrypt_dirs = ['config', 'work', 'logs']
+previous_letsencrypt_run = letsencrypt_dirs.all?{|dir| Dir.exist?(dir)}
+
+case ARGV[0]
+when 'create'
+  certbot_commands = []
+  certbot_commands << "certbot certonly"
+  certbot_commands << "--manual --manual-public-ip-logging-ok --agree-tos"
+  certbot_commands << "--email #{EMAIL} --update-registration --no-eff-email"
+  certbot_commands << "--non-interactive --preferred-challenges dns"
+  certbot_commands << "--manual-auth-hook \"bundle exec #{Dir.pwd}/dns_auth.rb\""
+  certbot_commands << "--config-dir config --work-dir work --logs-dir logs"
+  certbot_commands << "--cert-name #{MAIN_DOMAIN}"
+  DOMAINS.each do |domain|
+    certbot_commands << "-d #{domain} -d www.#{domain}"
+  end
+  certbot_commands = certbot_commands.join(" ")
+
+  letsencrypt_dirs.select{|dirname| Dir.exists?(dirname)}.map{|dirname| FileUtils.remove_dir(dirname)}
+  run_command("mkdir -p #{letsencrypt_dirs.join(' ')}")
+  stdout, stdeerr, status = run_command(certbot_commands)
+
+  print_guide
+when 'renew'
+  if previous_letsencrypt_run
+    certbot_commands =  []
+    certbot_commands << "certbot renew"
+    certbot_commands << "--manual --manual-public-ip-logging-ok --agree-tos"
+    certbot_commands << "--email #{EMAIL} --update-registration --no-eff-email"
+    certbot_commands << "--non-interactive --preferred-challenges dns"
+    certbot_commands << "--manual-auth-hook \"bundle exec #{Dir.pwd}/dns_auth.rb\""
+    certbot_commands << "--config-dir config --work-dir work --logs-dir logs"
+    certbot_commands << "--cert-name #{MAIN_DOMAIN}"
+    certbot_commands = certbot_commands.join(" ")
+    stdout, stdeerr, status = run_command(certbot_commands)
+
+    print_guide
+  else
+    puts "It seems like there are no files from a previous LetsEncrypt run, exiting!"
+    exit 1
+  end
+else
+  puts "Usage:"
+  puts "bundle exec ruby ssl_certbot.rb COMMAND"
+  puts
+  puts "Commands:"
+  puts "create - Request a new certificate from LetsEncrypt, should only be used on the first run, or if you have modified the domains."
+  puts "renew  - Renew an already created certificate"
+end
+```
