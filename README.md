@@ -290,7 +290,11 @@ else
   puts "bundle exec ruby ssl_certbot.rb COMMAND"
   puts
   puts "Commands:"
-  puts "create - Request a new certificate from LetsEncrypt, should only be used on the first run, or if you have modified the domains."
+  puts "create - Request a new certificate from LetsEncrypt, should only be used on the first run, or if you have modified the list of domains."
   puts "renew  - Renew an already created certificate"
 end
 ```
+
+You can update the variables in top of the script, and then you can run `bundle exec ruby ssl_certbot.rb create`, and everytime you need to renew the certificate you can run `bundle exec ruby ssl_certbot.rb renew`.
+
+You will need to run the `create` if your list of domains have changed.
