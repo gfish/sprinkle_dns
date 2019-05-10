@@ -321,4 +321,30 @@ RSpec.describe SprinkleDNS::Client do
       end
     end
   end
+
+  context 'progress' do
+    before(:each) do
+      hz = SprinkleDNS::HostedZone.new('dota2tequila.com.')
+      pe01 = sprinkle_entry('A', 'bar.dota2tequila.com', '80.80.24.24', 80, 'dota2tequila.com.')
+
+      # We are emulating that these records are already live, mark them as persisted
+      [pe01].each do |persisted|
+        persisted.persisted!
+        hz.resource_record_sets << persisted
+      end
+      @client = SprinkleDNS::MockClient.new([hz])
+    end
+
+    it 'interactive' do
+      sdns = SprinkleDNS::Client.new(@client, interactive_progress: true)
+      sdns.entry('A', 'bar.dota2tequila.com', '70.70.99.99', 80)
+      sdns.sprinkle!
+    end
+
+    it 'non-interactive' do
+      sdns = SprinkleDNS::Client.new(@client, interactive_progress: false)
+      sdns.entry('A', 'bar.dota2tequila.com', '70.70.99.99', 80)
+      sdns.sprinkle!
+    end
+  end
 end
