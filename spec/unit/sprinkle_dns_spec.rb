@@ -269,7 +269,7 @@ RSpec.describe SprinkleDNS::Client do
 
   context 'record validation' do
     it 'should only allow valid string records' do
-      valid_records = ['SOA','A','TXT','NS','CNAME','MX','NAPTR','PTR','SRV','SPF','AAAA']
+      valid_records = ['SOA','A','TXT','NS','CNAME','MX','NAPTR','PTR','SRV','SPF','AAAA', 'CAA']
 
       valid_records.each do |record_type|
         r53c = SprinkleDNS::Route53Client.new('1','2')
@@ -280,7 +280,7 @@ RSpec.describe SprinkleDNS::Client do
     end
 
     it 'should not allow symbols for records' do
-      invalid_records = [:SOA, :A, :TXT, :NS, :CNAME, :MX, :NAPTR, :PTR, :SRV, :SPF, :AAAA]
+      invalid_records = [:SOA, :A, :TXT, :NS, :CNAME, :MX, :NAPTR, :PTR, :SRV, :SPF, :AAAA, :CAA]
 
       invalid_records.each do |record_type|
         r53c = SprinkleDNS::Route53Client.new('1','2')
