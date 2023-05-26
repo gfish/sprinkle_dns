@@ -26,4 +26,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "rake", '~> 12.3'
   gem.add_development_dependency "vcr", '~> 3.0'
   gem.add_development_dependency "webmock", '~> 2.3'
+  gem.add_development_dependency "rexml", '~> 3.2'
 end
