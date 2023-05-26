@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
+
+N/A
+
+## [1.0.3] - 2023-05-26
 ### Added
 - Added an LetsEncrypt guide to the README, including the scripts to communicate with LetsEncrypt.
 - Added support for CAA-records, https://blog.qualys.com/product-tech/2017/03/13/caa-mandated-by-cabrowser-forum
