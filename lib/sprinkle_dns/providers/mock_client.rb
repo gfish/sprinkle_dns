@@ -9,8 +9,6 @@ module SprinkleDNS
     end
 
     def fetch_hosted_zones(filter: [])
-      hosted_zones = []
-
       if filter.empty?
         return []
       end

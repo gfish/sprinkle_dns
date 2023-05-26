@@ -83,7 +83,7 @@ module SprinkleDNS
     private
 
     def valid_record_types
-      ['SOA','A','TXT','NS','CNAME','MX','NAPTR','PTR','SRV','SPF','AAAA']
+      ['SOA','A','TXT','NS','CNAME','MX','NAPTR','PTR','SRV','SPF','AAAA', 'CAA']
     end
 
   end

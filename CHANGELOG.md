@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 ### Added
 - Added an LetsEncrypt guide to the README, including the scripts to communicate with LetsEncrypt.
+- Added support for CAA-records, https://blog.qualys.com/product-tech/2017/03/13/caa-mandated-by-cabrowser-forum
 
 ## [1.0.2] - 2019-05-11
 ### Fixed
