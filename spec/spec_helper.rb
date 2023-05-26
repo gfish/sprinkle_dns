@@ -24,6 +24,7 @@ require 'simplecov'
 SimpleCov.start
 
 require 'vcr'
+require 'pry'
 
 require './spec/support/entry_helpers'
 
