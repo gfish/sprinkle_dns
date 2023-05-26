@@ -22,7 +22,7 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency "rspec", '~> 3.8'
   gem.add_development_dependency "simplecov", '~> 0.16'
-  gem.add_development_dependency "pry", '~> 0.12'
+  gem.add_development_dependency "pry", '~> 0.14.2'
   gem.add_development_dependency "rake", '~> 12.3'
   gem.add_development_dependency "vcr", '~> 3.0'
   gem.add_development_dependency "webmock", '~> 2.3'
